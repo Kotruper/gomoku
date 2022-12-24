@@ -9,17 +9,24 @@ import org.json.JSONObject;
 import static j2html.TagCreator.*;
 import static spark.Spark.*;
 
-public class Chat {
+public class Game {
 
     // this map is shared between sessions and threads, so it needs to be thread-safe (http://stackoverflow.com/a/2688817)
     static Map<Session, String> userUsernameMap = new ConcurrentHashMap<>();
-    static int nextUserNumber = 1; //Assign to username for next connecting user
+    static String nextUserName = "User0"; //Assign to username for next connecting user
 
     public static void main(String[] args) {
         staticFiles.location("/public"); //index.html is served at localhost:4567 (default port)
-        staticFiles.expireTime(600);
-        webSocket("/chat", ChatWebSocketHandler.class);
+        //staticFiles.expireTime(600);
+        webSocket("/socket", GameWebSocketHandler.class);
         init();
+        post("/post/username",(req,res)->{
+            nextUserName = req.queryParamOrDefault("username","UsernameNotFound");
+            //int gameID = gameController.joinGame(username);
+            res.redirect("/game.html");
+            return res;
+        });
+        //get("/room/*",(req,res)->)
     }
 
     //Sends a message from one user to all users, along with a list of current usernames

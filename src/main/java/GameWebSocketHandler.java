@@ -1,0 +1,30 @@
+import org.eclipse.jetty.websocket.api.*;
+import org.eclipse.jetty.websocket.api.annotations.*;
+
+import java.util.logging.Logger;
+
+@WebSocket
+public class GameWebSocketHandler {
+
+    private String sender, msg;
+
+    @OnWebSocketConnect
+    public void onConnect(Session user) throws Exception {
+        String username = Game.nextUserName;
+        Game.userUsernameMap.put(user, username);
+        Game.broadcastMessage(sender = "Server", msg = (username + " joined the chat"));
+    }
+
+    @OnWebSocketClose
+    public void onClose(Session user, int statusCode, String reason) {
+        String username = Game.userUsernameMap.get(user);
+        Game.userUsernameMap.remove(user);
+        Game.broadcastMessage(sender = "Server", msg = (username + " left the chat"));
+    }
+
+    @OnWebSocketMessage
+    public void onMessage(Session user, String message) {
+        Game.broadcastMessage(sender = Game.userUsernameMap.get(user), msg = message);
+    }
+
+}
