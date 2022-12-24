@@ -1,2 +1,3 @@
-# spark-websocket
-The source code for the WebSocket chat application at sparktutorials.github.io: [https://sparktutorials.github.io/2015/11/08/spark-websocket-chat.html](https://sparktutorials.github.io/2015/11/08/spark-websocket-chat.html)
+domyślny websoocket to 4567
+[Tutorial do chatu](http://sparkjava.com/tutorials/websocket-chat)
+[Dokumentacja Sparka](http://sparkjava.com/documentation)
