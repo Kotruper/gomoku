@@ -2,7 +2,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
 import org.eclipse.jetty.websocket.api.Session;
 import org.json.JSONObject;
 
@@ -21,6 +20,7 @@ public class Game {
         webSocket("/socket", GameWebSocketHandler.class);
         init();
         post("/post/username",(req,res)->{
+            req.session(true);
             nextUserName = req.queryParamOrDefault("username","UsernameNotFound");
             //int gameID = gameController.joinGame(username);
             res.redirect("/game.html");
