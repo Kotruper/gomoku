@@ -1,9 +1,7 @@
-import java.util.ArrayList;
-import java.util.List;
 
 public class Match implements Runnable {
     private class SlotFilledException extends Exception{public SlotFilledException(String errMsg){super(errMsg);}}
-    private Player p1 = null, p2 = null;
+    private Player p1, p2 = null;
     private int boardSize;
     private char[][] board;
     private int turn = 1;
@@ -30,13 +28,15 @@ public class Match implements Runnable {
 
     @Override
     public void run(){
-        while (p2 == null){
+        while (p2 == null || p2.ses == null){
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
         }
+        p1.sendMatchInfo(p2);
+        p2.sendMatchInfo(p1);
         Player currentPlayer;
         Player.Move lastMove = null;
         do{
@@ -45,19 +45,20 @@ public class Match implements Runnable {
                 lastMove = getMove(currentPlayer);
                 updateBoardState(lastMove, currentPlayer.getSymbol());
                 turn++;
-                p1.sendBoardState(board,p2);
-                p2.sendBoardState(board,p1);
+                p1.sendMove(lastMove, currentPlayer.getSymbol());
+                p2.sendMove(lastMove, currentPlayer.getSymbol());
             }catch (SlotFilledException e){
-                currentPlayer.sendErr(e);
+                currentPlayer.sendErr("This spot is already occupied!");
             }catch (IndexOutOfBoundsException e){
-                currentPlayer.sendErr(e);
+                currentPlayer.sendErr("This spot is out of bounds!");
             } catch (InterruptedException e) {
-                currentPlayer.sendErr(e);
+                currentPlayer.sendErr("Interrupted Exception!");
             }
 
             }while(!hasGameEnded(lastMove));
-        System.out.println(currentPlayer.getName()+" has won!");
-        //return currentPlayer;
+        Boolean isDraw = (turn == maxMoves);
+        p1.sendMatchResult(currentPlayer, isDraw);
+        p2.sendMatchResult(currentPlayer, isDraw);  //TODO: send results to a database
     }
 
     public void playerJoin(Player p2){
@@ -101,13 +102,10 @@ public class Match implements Runnable {
         char symbol = board[pos.X][pos.Y];
         if (symbol == ' ')
             return false;
-        /* obsługa remisu?
-        if (turn == maxTurn){
+        if (turn == maxMoves) {
             return true;
         }
-        */
-        boolean gameEnded = checkLine(1, 0, symbol, pos) || checkLine(0, 1, symbol, pos) || checkLine(1, 1, symbol, pos) || checkLine(1, -1, symbol, pos);
-        return gameEnded;
+        return checkLine(1, 0, symbol, pos) || checkLine(0, 1, symbol, pos) || checkLine(1, 1, symbol, pos) || checkLine(1, -1, symbol, pos);
     }
 
     private boolean checkLine(int xShift, int yShift, char symbol, Player.Move pos){
@@ -131,11 +129,7 @@ public class Match implements Runnable {
         return false;
     }
     private boolean outOfBounds(int x, int y){
-        if (x < 0 || x >= boardSize || y < 0 || y >= boardSize) {
-            return true;
-        }else {
-            return false;
-        }
+        return x < 0 || x >= boardSize || y < 0 || y >= boardSize;
     }
     private int boardToRowAmount(int size){
         if (size <= 3){

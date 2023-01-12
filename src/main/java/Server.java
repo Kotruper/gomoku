@@ -1,6 +1,5 @@
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -18,39 +17,64 @@ public class Server {
         staticFiles.expireTime(600);
         webSocket("/socket", GameWebSocketHandler.class);
         init();
-        post("/post/username",(req,res)->{
-            String user = req.queryParamOrDefault("username","UsernameNotFound");
-            Player newPlayer = new Player(user);
-            req.session(true).attribute("currentUser",user);
-            sessionIDPlayerMap.put(req.session().id(), newPlayer);
-            GameController.joinAvailableGame(newPlayer);
-            res.redirect("/game.html");
+        get("/join",(req,res)->{
+            if(ensureUserIsLoggedIn(req,res)){
+                String user = req.session().attribute("currentUser");
+                Player newPlayer = new Player(user);
+                sessionIDPlayerMap.put(req.session().id(), newPlayer);
+                GameController.joinAvailableGame(newPlayer);
+                res.redirect("/game.html");
+            }
+            return res;
+        });
+        post("/post/login",(req,res)->{
+            String username = req.queryParams("username");
+            String password = req.queryParams("password");
+            if(UserController.authenticate(username, password)){
+                req.session(true).attribute("currentUser",username);
+                res.cookie("currentUser", username);
+                res.redirect("/index.html");
+            }
+            else{
+                res.body("No user found.");
+            }
+            return res;
+        });
+        post("/post/register",(req,res)->{
+            String username = req.queryParams("username");
+            String password = req.queryParams("password");
+            if(UserController.createUser(username, password)){
+                req.session(true).attribute("currentUser",username);
+                res.cookie("currentUser", username);
+                res.redirect("/index.html");
+            }
+            else{
+                res.body("User already found.");
+            }
             return res;
         });
     }
 
-    public static void ensureUserIsLoggedIn(Request request, Response response) {
+    public static Boolean ensureUserIsLoggedIn(Request request, Response response) {
         if (request.session().attribute("currentUser") == null) {
             request.session().attribute("loginRedirect", request.pathInfo());
-            response.redirect("/login");
+            response.redirect("/login.html");
+            return false;
         }
+        else
+            return true;
     }
-
-    public static void sendMessage(Player sender, Player receiver, String message) {
-
+    public static void sendMessage(Player receiver, JSONObject messageJson) {
         try {
-            receiver.ses.getRemote().sendString(String.valueOf(new JSONObject()
-                    .put("userMessage", createHtmlMessageFromSender(sender.getName(), message))
-                    .put("userlist", List.of(sender.getName(),receiver.getName()))
-            ));
+            receiver.ses.getRemote().sendString(String.valueOf(messageJson));
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private static String createHtmlMessageFromSender(String sender, String message) {
+    private static String createHtmlMessage(String message) {
         return article(
-                b(sender + " says:"),
+                b("Server message:"),
                 span(attrs(".timestamp"), new SimpleDateFormat("HH:mm:ss").format(new Date())),
                 p(message)
         ).render();

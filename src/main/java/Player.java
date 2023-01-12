@@ -1,6 +1,6 @@
 import org.eclipse.jetty.websocket.api.Session;
+import org.json.JSONObject;
 
-import java.net.Socket;
 import java.util.Scanner;
 
 public class Player {
@@ -21,26 +21,27 @@ public class Player {
     }
 
     //public boolean ready = false;
-
-    public void sendBoardState(char[][] board, Player other) throws InterruptedException {
+/*
+    public void sendBoardState(char[][] board, Player receiver) throws InterruptedException {
         String message = "";
         for (char[] row : board){
             message = (String.valueOf(row)+"\n");
-            Server.sendMessage(this,other,message);
+            Server.sendMessage(this,receiver,message);
             Thread.sleep(10);
         }
-
+    }
+*/
+    public void sendMove(Move move, char symbol) throws InterruptedException {
+        JSONObject message = new JSONObject()
+                .put("type","move")
+                .put("x",move.X)
+                .put("y",move.Y)
+                .put("symbol",symbol);
+        Server.sendMessage(this, message);
+        Thread.sleep(10);
     }
 
     public void setLastMove(int x, int y){
-        lastMove = new Move(x,y);
-    }
-
-    public void oldGetMove() {
-        System.out.println(name+", twoja kolej!");
-        Scanner input = new Scanner(System.in);
-        int x = input.nextInt();
-        int y = input.nextInt();
         lastMove = new Move(x,y);
     }
 
@@ -52,12 +53,34 @@ public class Player {
         return symbol;
     }
 
-    public void sendErr(Exception e) {
-        System.out.println(e.toString());
+    public void sendErr(String error) {
+        JSONObject message = new JSONObject()
+                .put("type","error")
+                .put("value",error);
+        Server.sendMessage(this, message);
     }
-
-    private void displayMessage(String message){
-
+    public void sendMatchInfo(Player other) {
+        JSONObject message = new JSONObject()
+                .put("type","info")
+                .put("yourname",this.name)
+                .put("othername",other.name)
+                .put("symbol",this.symbol);
+        Server.sendMessage(this, message);
+    }
+    public void sendMatchResult(Player winner, Boolean draw) {
+        JSONObject message = new JSONObject()
+                .put("type","result")
+                .put("isDraw",draw)
+                .put("winner", winner.name);
+        Server.sendMessage(this, message);
+    }
+    public void sendMessage(Player receiver, String message) {
+        JSONObject messageJson = new JSONObject()
+                .put("type","chat")
+                .put("sender", this.name)
+                .put("message",message);
+        //Server.sendMessage(this, messageJson); //Locally show message, do in JS
+        Server.sendMessage(receiver,messageJson);
     }
 
     public static class Move {

@@ -25,15 +25,17 @@ public class GameWebSocketHandler {
     @OnWebSocketClose
     public void onClose(Session user, int statusCode, String reason) {
         sessionPlayerMap.remove(user);
-    }
+    } //TODO: close match on leave
 
     @OnWebSocketMessage
     public void onMessage(Session user, String message) {
+        //JSONObject messageJSON = new JSONObject(message);
+        //int x = messageJSON.getInt("x");
+        //int y = messageJSON.getInt("y");
         Player p = sessionPlayerMap.get(user);
         int x = message.charAt(0)-'0';
         int y = message.charAt(1)-'0';
         p.setLastMove(x,y);
-        //sessionPlayerMap.get(user).setLastMove();
     }
 
     static private String idFromSession(Session user) {
