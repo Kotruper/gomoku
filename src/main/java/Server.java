@@ -3,6 +3,8 @@ import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.eclipse.jetty.websocket.api.WebSocketException;
+import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import org.json.JSONObject;
 import spark.*;
 
@@ -36,7 +38,7 @@ public class Server {
                 res.redirect("/index.html");
             }
             else{
-                res.body("No user found.");
+                res.body("No such user found.");    //TODO how to respond with errors
             }
             return res;
         });
@@ -49,8 +51,14 @@ public class Server {
                 res.redirect("/index.html");
             }
             else{
-                res.body("User already found.");
+                res.body("Username is taken."); //TODO how to respond with errors
             }
+            return res;
+        });
+        post("/post/logout",(req,res)->{
+            req.session().removeAttribute("currentUser");
+            res.removeCookie("currentUser");
+            res.redirect("index.html");
             return res;
         });
     }
@@ -67,7 +75,9 @@ public class Server {
     public static void sendMessage(Player receiver, JSONObject messageJson) {
         try {
             receiver.ses.getRemote().sendString(String.valueOf(messageJson));
-        } catch (Exception e) {
+        }catch (WebSocketException e){
+
+        }catch (Exception e) {
             e.printStackTrace();
         }
     }

@@ -1,5 +1,5 @@
 
-public class Match implements Runnable {
+public class Match extends Thread {
     private class SlotFilledException extends Exception{public SlotFilledException(String errMsg){super(errMsg);}}
     private Player p1, p2 = null;
     private int boardSize;
@@ -18,6 +18,13 @@ public class Match implements Runnable {
         p1.setSymbol('X');
     }
 
+    public Player getP1(){
+        return p1;
+    }
+    public Player getP2(){
+        return p2;
+    }
+
     private void initializeBoard(char[][] board) {
         for (int i = 0; i < boardSize; i++) {
             for (int j = 0; j < boardSize; j++) {
@@ -32,7 +39,7 @@ public class Match implements Runnable {
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+                return;
             }
         }
         p1.sendMatchInfo(p2);
@@ -52,10 +59,11 @@ public class Match implements Runnable {
             }catch (IndexOutOfBoundsException e){
                 currentPlayer.sendErr("This spot is out of bounds!");
             } catch (InterruptedException e) {
-                currentPlayer.sendErr("Interrupted Exception!");
+                return;
+                //getOtherPlayer(currentPlayer).sendErr("The other player has left!"); //Do nothing? maybe some database stuff, I dunno
             }
 
-            }while(!hasGameEnded(lastMove));
+        }while(!hasGameEnded(lastMove));
         Boolean isDraw = (turn == maxMoves);
         p1.sendMatchResult(currentPlayer, isDraw);
         p2.sendMatchResult(currentPlayer, isDraw);  //TODO: send results to a database
@@ -64,6 +72,15 @@ public class Match implements Runnable {
     public void playerJoin(Player p2){
         this.p2 = p2;
         this.p2.setSymbol('O');
+    }
+    public void playerLeaves(Player p){
+        getOtherPlayer(p).sendErr("The other player has left!");
+    }
+    private Player getOtherPlayer(Player p){
+        if (p == p1)
+            return p2;
+        else
+            return p1;
     }
 
     private Player.Move getMove(Player currentPlayer) throws InterruptedException {

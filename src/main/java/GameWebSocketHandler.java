@@ -24,11 +24,13 @@ public class GameWebSocketHandler {
 
     @OnWebSocketClose
     public void onClose(Session user, int statusCode, String reason) {
+        Player p = sessionPlayerMap.get(user);
+        GameController.playerLeftGame(p);
         sessionPlayerMap.remove(user);
     } //TODO: close match on leave
 
     @OnWebSocketMessage
-    public void onMessage(Session user, String message) {
+    public void onMessage(Session user, String message) {   //Use JSON for this
         //JSONObject messageJSON = new JSONObject(message);
         //int x = messageJSON.getInt("x");
         //int y = messageJSON.getInt("y");
