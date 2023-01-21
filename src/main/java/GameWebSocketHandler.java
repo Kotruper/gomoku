@@ -1,30 +1,52 @@
-import org.eclipse.jetty.websocket.api.*;
-import org.eclipse.jetty.websocket.api.annotations.*;
+import org.eclipse.jetty.websocket.api.Session;
+import org.eclipse.jetty.websocket.api.annotations.OnWebSocketClose;
+import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect;
+import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
+import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 
-import java.util.logging.Logger;
+import java.net.HttpCookie;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @WebSocket
 public class GameWebSocketHandler {
 
-    private String sender, msg;
+    static Map<Session, Player> sessionPlayerMap = new ConcurrentHashMap<>();
 
     @OnWebSocketConnect
     public void onConnect(Session user) throws Exception {
-        String username = Game.nextUserName;
-        Game.userUsernameMap.put(user, username);
-        Game.broadcastMessage(sender = "Server", msg = (username + " joined the chat"));
+        String id = idFromSession(user);
+        Player p = Server.sessionIDPlayerMap.get(id);
+        sessionPlayerMap.put(user,p);
+        p.setSession(user);
+        System.out.println(p.getName());
     }
 
     @OnWebSocketClose
     public void onClose(Session user, int statusCode, String reason) {
-        String username = Game.userUsernameMap.get(user);
-        Game.userUsernameMap.remove(user);
-        Game.broadcastMessage(sender = "Server", msg = (username + " left the chat"));
-    }
+        Player p = sessionPlayerMap.get(user);
+        GameController.playerLeftGame(p);
+        sessionPlayerMap.remove(user);
+    } //TODO: close match on leave
 
     @OnWebSocketMessage
-    public void onMessage(Session user, String message) {
-        Game.broadcastMessage(sender = Game.userUsernameMap.get(user), msg = message);
+    public void onMessage(Session user, String message) {   //Use JSON for this
+        //JSONObject messageJSON = new JSONObject(message);
+        //int x = messageJSON.getInt("x");
+        //int y = messageJSON.getInt("y");
+        Player p = sessionPlayerMap.get(user);
+        int x = message.charAt(0)-'0';
+        int y = message.charAt(1)-'0';
+        p.setLastMove(x,y);
     }
 
+    static private String idFromSession(Session user) {
+        for (HttpCookie cookie : user.getUpgradeRequest().getCookies()) { //JSON???
+            if (cookie.getName().equals("JSESSIONID")) {
+                String id = cookie.getValue();
+                return id.substring(0,id.length()-6);
+            }
+        }
+        return null;
+    }
 }
