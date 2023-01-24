@@ -1,25 +1,53 @@
 import org.eclipse.jetty.websocket.api.Session;
 
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class GameController {   //TODO: join from game list, join game by ID
-    private static Match emptyGame = null;
     public static Map<Player, Match> playerMatchMap = new ConcurrentHashMap<>();
 
-    public static void joinAvailableGame(Player p) {
-        Match game = null;
+    public static void joinAvailableGame(Player p) { //change this
+        Match emptyGame = getEmptyGame();
         if (emptyGame == null){
-            game = new Match(p, 15); //AAAAAAAAAAA
-            emptyGame = game;
-            game.start();
-            playerMatchMap.put(p, game);
+            createGame(p,15);
         }
         else {
-            emptyGame.playerJoin(p);
-            playerMatchMap.put(p, emptyGame);
-            emptyGame = null;
+            joinGame(p,emptyGame);
         }
+    }
+
+    public static void joinGame(Player p, Match game){
+        game.playerJoin(p);
+        playerMatchMap.put(p, game);
+    }
+    public static Match getGameById(long id){
+        for(Match game : playerMatchMap.values()){
+            if (game.getId() == id){
+                return game;
+            }
+        }
+        return null;
+    }
+    public static Collection<Match> getGamesList(){
+        Collection<Match> games = playerMatchMap.values();
+        Set<Match> set = new HashSet<>(games.size());
+        games.removeIf(p -> !set.add(p));
+        return games;
+    }
+
+    private static Match getEmptyGame(){
+        for(Match game : getGamesList()){
+            if(game.getP2() == null)
+                return game;
+        }
+        return null;
+    }
+
+
+    public static void createGame(Player p, int boardSize){
+        Match game = new Match(p, boardSize);
+        game.start();
+        playerMatchMap.put(p, game);
     }
 
     public static void playerLeftGame(Player p){
