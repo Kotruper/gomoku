@@ -1,26 +1,137 @@
 <!DOCTYPE html>
-<html>
-<head>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>WebsSockets</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <form id="loginForm" method="post" action="/post/login">
-        <fieldset>
-            <p>Login</p>
-            <input name="username" placeholder="Type your username">
-            <input name="password" type="password" placeholder="Type your password">
-            <button type="submit">Send</button>
-        </fieldset>
-    </form>
-    <form id="registerForm" method="post" action="/post/register">
-        <fieldset>
-            <p>Register</p>
-            <input name="username" placeholder="Type your username">
-            <input name="password" type="password" placeholder="Type your password">
-            <button type="submit">Send</button>
-        </fieldset>
-    </form>
-</body>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/css/bootstrap-grid.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/5.2.3/slate/bootstrap.min.css"/>
+    <link rel="stylesheet" href="styleee.css"/>
+  
+    <script src="https://code.jquery.com/jquery-3.6.1.slim.min.js" ></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.11.6/umd/popper.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/js/bootstrap.min.js"></script>
+    <title>Gomoku - Logowanie</title>
+  </head>
+  <body>
+    <div class="container">
+        <div class="row">
+            <div class="col-12 mt-5 mb-5">
+                <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                    <button class="btn btn-info me-md-2" type="button" style="min-width: 45%; font-weight: bolder;" id="showLoginButton">Logowanie</button>
+                    <button class="btn btn-success" type="button" style="min-width: 45%; font-weight: bolder;" id="showRegisterButton">Rejestracja</button>
+                </div>
+            </div>
+            
+        </div>
+
+        <div class="card card-body" id="loginForm">
+            <h1 class="text-center mb-3"><i class="fas fa-sign-in-alt" style="color: #5bc0de "></i>  Logowanie</h1>
+            <form class="p-3" method="post" action="/post/login">
+              <div class="form-group">
+                <label for="username-Login" class="form-label mt-4" style="font-weight: bolder;">Login:</label>
+                <input
+                  type="login"
+                  id="username-Login"
+                  name="username"
+                  class="form-control"
+                  placeholder="Wpisz login..."
+                />
+              </div>
+              <div class="form-group mb-5">
+                <label for="password-Login" class="form-label mt-4" style="font-weight: bolder;">Hasło:</label>
+                <input
+                  type="password"
+                  id="password-Login"
+                  name="password"
+                  class="form-control"
+                  placeholder="Wpisz hasło..."
+                />
+              </div>
+              <button type="submit" class="mt-3 mb-2 position-absolute bottom-0 start-50 translate-middle-x btn btn-info btn-block disabled" style="min-width: 45%;" id="submitLogin">Zaloguj...</button>
+            </form>
+        </div>
+
+        <div class="card card-body d-none" id="regisetForm">
+            <h1 class="text-center mb-3"><i class="fa-solid fa-circle-plus" style="color: #458945"></i>  Rejestracja</h1>
+            <form class="p-3" method="post" action="/post/register">
+              <div class="form-group">
+                <label for="username-Login" class="form-label mt-4" style="font-weight: bolder;">Login:</label>
+                <input
+                  type="login"
+                  id="username-Register"
+                  name="username"
+                  class="form-control"
+                  placeholder="Wpisz login..."
+                />
+              </div>
+              <div class="form-group">
+                <label for="password-Login" class="form-label mt-4" style="font-weight: bolder;">Hasło:</label>
+                <input
+                  type="password"
+                  id="password-Register"
+                  name="password"
+                  class="form-control"
+                  placeholder="Wpisz hasło..."
+                />
+              </div>
+              <div class="form-group mb-5">
+                <label for="password-Login" class="form-label mt-4" style="font-weight: bolder;">Powtórz Hasło:</label>
+                <input
+                  type="password"
+                  id="password2-Register"
+                  class="form-control"
+                  placeholder="Wpisz hasło..."
+                />
+              </div>
+              <button type="submit" class="mt-3 mb-2 position-absolute bottom-0 start-50 translate-middle-x btn btn-success btn-block disabled" style="min-width: 45%;" id="submitRegister">Zarejestruj...</button>
+            </form>
+        </div>
+    </div>
+  </body>
+  <script>
+    $('#showLoginButton').click(() => {
+        $('#regisetForm').addClass('d-none');
+        $('#loginForm').removeClass('d-none');
+    });
+
+    $('#showRegisterButton').click(() => {
+        $('#loginForm').addClass('d-none');
+        $('#regisetForm').removeClass('d-none');
+    });
+
+    const validateLoginForm = () => {
+        const login = $('#username-Login').val();
+        const password = $('#password-Login').val();
+        if(!login || !password){
+            $('#submitLogin').addClass('disabled');
+        }else{
+            $('#submitLogin').removeClass('disabled');
+        }
+    }
+
+    const validateRegisterForm = () => {
+        const login = $('#username-Register').val();
+        const password = $('#password-Register').val();
+        const password2 = $('#password2-Register').val();
+        if(!login || !password || !password2){
+            $('#submitRegister').addClass('disabled');
+        }else{
+            if(password == password2)
+                $('#submitRegister').removeClass('disabled');
+            else
+                $('#submitRegister').addClass('disabled');
+        }
+
+    }
+
+    $('#username-Login').keyup(validateLoginForm);
+    $('#password-Login').keyup(validateLoginForm);
+
+    $('#username-Register').keyup(validateRegisterForm);
+    $('#password-Register').keyup(validateRegisterForm);
+    $('#password2-Register').keyup(validateRegisterForm);
+  </script>
 </html>
