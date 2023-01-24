@@ -33,7 +33,7 @@ public class Player {
 */
     public void sendMove(Move move, char symbol) throws InterruptedException {
         JSONObject message = new JSONObject()
-                .put("type","move")
+                .put("type","game_move")
                 .put("x",move.X)
                 .put("y",move.Y)
                 .put("symbol",symbol);
@@ -55,13 +55,13 @@ public class Player {
 
     public void sendErr(String error) {
         JSONObject message = new JSONObject()
-                .put("type","error")
+                .put("type","game_error")
                 .put("value",error);
         Server.sendMessage(this, message);
     }
     public void sendMatchInfo(Player other, int boardsize) {
         JSONObject message = new JSONObject()
-                .put("type","info")
+                .put("type","game_start")
                 .put("yourname",this.name)
                 .put("othername",other.name)
                 .put("symbol",this.symbol)
@@ -70,7 +70,7 @@ public class Player {
     }
     public void sendMatchResult(Player winner, Boolean draw) {
         JSONObject message = new JSONObject()
-                .put("type","result")
+                .put("type","game_end")
                 .put("isDraw",draw)
                 .put("winner", winner.name);
         Server.sendMessage(this, message);
