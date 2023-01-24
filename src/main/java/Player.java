@@ -59,12 +59,13 @@ public class Player {
                 .put("value",error);
         Server.sendMessage(this, message);
     }
-    public void sendMatchInfo(Player other) {
+    public void sendMatchInfo(Player other, int boardsize) {
         JSONObject message = new JSONObject()
                 .put("type","info")
                 .put("yourname",this.name)
                 .put("othername",other.name)
-                .put("symbol",this.symbol);
+                .put("symbol",this.symbol)
+                .put("boardsize", boardsize);
         Server.sendMessage(this, message);
     }
     public void sendMatchResult(Player winner, Boolean draw) {
