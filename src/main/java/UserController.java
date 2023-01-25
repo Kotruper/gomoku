@@ -15,12 +15,14 @@ public class UserController {
 //    private static Map<String, String> userHashPasswordMap = new ConcurrentHashMap<>();
 
     public static boolean createUser(String username, String password) {
-        if (((Document) Server.dbCollection.find(new Document("Username",username)).first()) == null) {
+        if (((Document) Server.dbCollection.find(new Document("Username",username)).first()) != null) {
             return false;
         } else {
             try {
 //                userHashPasswordMap.put(username, toHexString(getSHA(password)));
-                Server.dbCollection.insertOne(new Document("Username", username).append("Password", toHexString(getSHA(password))).append("Wins", 0)); // dodawanie do DB krotki (Username, Password, Wins)
+                Server.dbCollection.insertOne(new Document("Username", username)
+                        .append("Password", toHexString(getSHA(password)))
+                        .append("Wins", 0)); // dodawanie do DB krotki (Username, Password, Wins)
             }
             catch (NoSuchAlgorithmException e){
                 System.out.println("Exception thrown for incorrect algorithm: " + e);
@@ -33,12 +35,16 @@ public class UserController {
         try {
             String hashedPass = toHexString(getSHA(password));
 //            return (Objects.equals(userHashPasswordMap.get(username), hashedPass)) && password != null;
-            return (Objects.equals(((Document) Server.dbCollection.find(new Document("Username",username)).first()).get("Password"), hashedPass)) && password != null; // do sprawdzanie przez bazę danych
+            Document user = (Document) Server.dbCollection.find(new Document("Username", username)).first();
+            if (user != null){
+                return hashedPass.equals(user.get("Password")) && password != null; // do sprawdzanie przez bazę danych
+            }
         }
         catch (NoSuchAlgorithmException e){
             System.out.println("Exception thrown for incorrect algorithm: " + e);
             return false;
         }
+        return false;
     }
 
 
