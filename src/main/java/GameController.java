@@ -9,7 +9,7 @@ public class GameController {   //TODO: join from game list, join game by ID
     public static void joinAvailableGame(Player p) { //change this
         Match emptyGame = getEmptyGame();
         if (emptyGame == null){
-            createGame(p,15);
+            createGame(p,3);
         }
         else {
             joinGame(p,emptyGame);

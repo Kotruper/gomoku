@@ -71,7 +71,7 @@ const createBoard = (size) => {
     }
 }
 
-createBoard(15);
+createBoard(3);
 
 const gameStartX = (message) => {
     const cellElements = document.querySelectorAll('[data-cell]');

@@ -15,7 +15,7 @@ public class UserController {
 //    private static Map<String, String> userHashPasswordMap = new ConcurrentHashMap<>();
 
     public static boolean createUser(String username, String password) {
-        if (((Document) Server.dbCollection.find(new Document("Username",username)).first()) == null) {
+        if (((Document) Server.dbCollection.find(new Document("Username",username)).first()) != null) {
             return false;
         } else {
             try {
@@ -33,7 +33,11 @@ public class UserController {
         try {
             String hashedPass = toHexString(getSHA(password));
 //            return (Objects.equals(userHashPasswordMap.get(username), hashedPass)) && password != null;
-            return (Objects.equals(((Document) Server.dbCollection.find(new Document("Username",username)).first()).get("Password"), hashedPass)) && password != null; // do sprawdzanie przez bazę danych
+            if(((Document) Server.dbCollection.find(new Document("Username",username)).first()) != null) {
+                return (Objects.equals(((Document) Server.dbCollection.find(new Document("Username", username)).first()).get("Password"), hashedPass)) && password != null; // do sprawdzanie przez bazę danych
+            }else{
+                return false;
+            }
         }
         catch (NoSuchAlgorithmException e){
             System.out.println("Exception thrown for incorrect algorithm: " + e);
