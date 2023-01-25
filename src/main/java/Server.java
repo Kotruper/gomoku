@@ -35,6 +35,7 @@ public class Server {
         staticFiles.location("/public"); //index.html is served at localhost:4567 (default port)
         staticFiles.expireTime(600);
         webSocket("/socket", GameWebSocketHandler.class);
+        webSocket("/scores", ScoresWebSocketHandler.class);
         init();
         get("/join",(req,res)->{
             if(ensureUserIsLoggedIn(req,res)){
@@ -79,7 +80,7 @@ public class Server {
             res.redirect("index.html");
             return res;
         });
-        get("/createGame/:size",(req,res)->{
+        get("/createGame/:size",(req,res)->{ //TODO Dodać obsługę tworzenia gry z nazwą
             if(ensureUserIsLoggedIn(req,res)){
                 String user = req.session().attribute("currentUser");
                 Player newPlayer = new Player(user);
