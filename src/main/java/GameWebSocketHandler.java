@@ -3,6 +3,7 @@ import org.eclipse.jetty.websocket.api.annotations.OnWebSocketClose;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
+import org.json.JSONObject;
 
 import java.net.HttpCookie;
 import java.util.Map;
@@ -31,12 +32,12 @@ public class GameWebSocketHandler {
 
     @OnWebSocketMessage
     public void onMessage(Session user, String message) {   //Use JSON for this
-        //JSONObject messageJSON = new JSONObject(message);
-        //int x = messageJSON.getInt("x");
-        //int y = messageJSON.getInt("y");
+        JSONObject messageJSON = new JSONObject(message);
+        int x = messageJSON.getInt("x");
+        int y = messageJSON.getInt("y");
         Player p = sessionPlayerMap.get(user);
-        int x = message.charAt(0)-'0';
-        int y = message.charAt(1)-'0';
+        //int x = message.charAt(0)-'0';
+        //int y = message.charAt(1)-'0';
         p.setLastMove(x,y);
     }
 

@@ -14,14 +14,21 @@ public class Match extends Thread {
     private int inARow;
     private int maxMoves;
 
-    public Match(Player player1, int boardSize){
-        this.p1 = player1;
+    public Match(int boardSize){
         this.boardSize = boardSize;
         this.board = new char[boardSize][boardSize];
         inARow = boardToRowAmount(boardSize);
         maxMoves = boardSize * boardSize;
         initializeBoard(board);
-        p1.setSymbol('X');
+    }
+
+    public Match(Player player1, int boardSize){
+        playerJoin(player1);
+        this.boardSize = boardSize;
+        this.board = new char[boardSize][boardSize];
+        inARow = boardToRowAmount(boardSize);
+        maxMoves = boardSize * boardSize;
+        initializeBoard(board);
     }
 
     public Player getP1(){
@@ -41,15 +48,15 @@ public class Match extends Thread {
 
     @Override
     public void run(){
-        while (p2 == null || p2.ses == null){
+        while (p1 == null || p1.ses == null || p2 == null || p2.ses == null){
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
                 return;
             }
         }
-        p1.sendMatchInfo(p2);
-        p2.sendMatchInfo(p1);
+        p1.sendMatchInfo(p2, boardSize);
+        p2.sendMatchInfo(p1, boardSize);
         Player currentPlayer;
         Player.Move lastMove = null;
         do{
@@ -78,9 +85,14 @@ public class Match extends Thread {
         p2.sendMatchResult(currentPlayer, isDraw);  //TODO: send results to a database
     }
 
-    public void playerJoin(Player p2){
-        this.p2 = p2;
-        this.p2.setSymbol('O');
+    public void playerJoin(Player p){
+        if (p1 == null){
+            this.p1 = p;
+            this.p1.setSymbol('X');
+        }else{
+            this.p2 = p;
+            this.p2.setSymbol('O');
+        }
     }
     public void playerLeaves(Player p){
         getOtherPlayer(p).sendErr("The other player has left!");
