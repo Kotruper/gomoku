@@ -6,10 +6,11 @@ import java.util.concurrent.ConcurrentHashMap;
 public class GameController {   //TODO: join from game list, join game by ID
     public static Map<Player, Match> playerMatchMap = new ConcurrentHashMap<>();
 
+    private static int defaultRoomNumber = 1;
     public static void joinAvailableGame(Player p) { //change this
         Match emptyGame = getEmptyGame();
         if (emptyGame == null){
-            createGame(p,3);
+            createGame(p,15, "Room #"+defaultRoomNumber++);
         }
         else {
             joinGame(p,emptyGame);
@@ -44,8 +45,8 @@ public class GameController {   //TODO: join from game list, join game by ID
     }
 
 
-    public static void createGame(Player p, int boardSize){
-        Match game = new Match(p, boardSize);
+    public static void createGame(Player p, int boardSize, String gameName){
+        Match game = new Match(p, boardSize, gameName);
         game.start();
         playerMatchMap.put(p, game);
     }

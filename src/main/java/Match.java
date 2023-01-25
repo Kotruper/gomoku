@@ -6,24 +6,32 @@ import org.bson.Document;
 import javax.print.Doc;
 
 public class Match extends Thread {
+    public String getGameName() {
+        return gameName;
+    }
+
     private class SlotFilledException extends Exception{public SlotFilledException(String errMsg){super(errMsg);}}
     private Player p1, p2 = null;
+
+    private String gameName;
     private int boardSize;
     private char[][] board;
     private int turn = 1;
     private int inARow;
     private int maxMoves;
 
-    public Match(int boardSize){
+    public Match(int boardSize, String gameName){
         this.boardSize = boardSize;
+        this.gameName = gameName;
         this.board = new char[boardSize][boardSize];
         inARow = boardToRowAmount(boardSize);
         maxMoves = boardSize * boardSize;
         initializeBoard(board);
     }
 
-    public Match(Player player1, int boardSize){
+    public Match(Player player1, int boardSize, String gameName){
         playerJoin(player1);
+        this.gameName = gameName;
         this.boardSize = boardSize;
         this.board = new char[boardSize][boardSize];
         inARow = boardToRowAmount(boardSize);
