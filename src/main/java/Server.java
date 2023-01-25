@@ -36,7 +36,7 @@ public class Server {
         dbCollection = database.getCollection("Users");
 
         staticFiles.location("/public"); //index.html is served at localhost:4567 (default port)
-        staticFiles.expireTime(600);
+        staticFiles.expireTime(1);
         webSocket("/socket", GameWebSocketHandler.class);
         webSocket("/scores", ScoresWebSocketHandler.class);
         init();
