@@ -36,7 +36,7 @@ public class Server {
         dbCollection = database.getCollection("Users");
 
         staticFiles.location("/public"); //index.html is served at localhost:4567 (default port)
-        staticFiles.expireTime(600);
+        staticFiles.expireTime(1);
         webSocket("/socket", GameWebSocketHandler.class);
         webSocket("/scores", ScoresWebSocketHandler.class);
         init();
@@ -94,6 +94,7 @@ public class Server {
                 int boardSize = Integer.decode(req.params("size"));
                 String gameName = req.params("gamename");
                 gameName = java.net.URLDecoder.decode(gameName, StandardCharsets.UTF_8);
+                System.out.println(gameName);
                 GameController.createGame(newPlayer,boardSize, gameName);
                 res.redirect("/game.html");
             }
@@ -121,7 +122,8 @@ public class Server {
                         .put("id",game.getId())
                         .put("player1", game.getP1() != null ? game.getP1().getName() : null)
                         .put("player2", game.getP2() != null ? game.getP2().getName() : null)
-                        .put("gamename", game.getGameName());
+                        .put("gameName", game.getGameName())
+                        .put("roomSize", game.getSize());
                 message.append("game",gameInfo);
             }
             return String.valueOf(message);

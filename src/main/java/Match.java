@@ -45,6 +45,9 @@ public class Match extends Thread {
     public Player getP2(){
         return p2;
     }
+    public int getSize(){
+        return boardSize;
+    }
 
     private void initializeBoard(char[][] board) {
         for (int i = 0; i < boardSize; i++) {

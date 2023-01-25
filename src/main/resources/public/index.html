@@ -16,68 +16,17 @@
         <div class="row d-flex justify-content-center mt-5 ">
             <div class="col-md-12">
                 <div class="card">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h3 class="font-weight-bold">Lista aktywnych gier</h3>
-                        <div class="d-flex flex-row">
-                            <button class="btn btn-success btn-sm new p-2 px-4" id="preCreateGame" style="border-radius: 25px;"><i class="fa fa-plus"></i> Nowa gra</button>
-                        </div>
-                    </div>
-                    <div class="mx-3">
-                        <hr>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="d-flex flex-row align-items-center flex-fill">
-                                <span class="star"><i class="fa-solid fa-5"></i></span>
-                                <div class="d-flex flex-column flex-fill">
-                                    <h5>Gra Jonaszora w ludzkim rozmiarze ;)</h5>
-                                    <div class="d-flex flex-row align-items-center time-text">
-                                        <h6 class="waiting">Oczekuje na 2. gracza...</h6>
-                                        <span class="dots mb-2"></span>
-                                        <h6>Jonaszor</h6>
-                                    </div>
-                                </div>
-                                <div class="d-flex flex-column ">
-                                    <button class="btn btn-info btn-sm join px-3"><i class="fa-solid fa-right-to-bracket"></i> Dołącz</button>
-                                </div>
+                    <div class="d-flex justify-content-between flex-column">
+                        <div class="d-flex flex-row justify-content-between align-items-center">
+                            <h1 class="font-weight-bold">Lista aktywnych gier</h1>
+                            <div class="d-flex align-items-end">
+                                <button class="btn btn-info btn-sm new p-2 px-4 mr-3" id="refreshList" style="border-radius: 25px;"><i class="fa-solid fa-arrows-rotate"></i> Odśwież listę</button>
+                                <div style="min-width: 10px;"></div>
+                                <button class="btn btn-success btn-sm new p-2 px-4 ml-3" id="preCreateGame" style="border-radius: 25px;"><i class="fa fa-plus"></i> Nowa gra</button>
                             </div>
-                        </div>
-                    </div> 
-                    <div class="mx-3">
-                        <hr>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="d-flex flex-row align-items-center flex-fill">
-                                <span class="star"><i class="fa-solid fa-9"></i></span>
-                                <div class="d-flex flex-column flex-fill">
-                                    <h5>Pojedynek mistrzów</h5>
-                                    <div class="d-flex flex-row align-items-center time-text">
-                                        <h6 class="inprogress">W trakcie</h6>
-                                        <span class="dots mb-2"></span>
-                                        <h6>Dyremix vs. Dyremix2</h6>
-                                    </div>
-                                </div>
-                                <div class="d-flex flex-column d-none align-items-center">
-                                    <button class="btn btn-info btn-sm join px-3"><i class="fa-solid fa-right-to-bracket"></i> Dołącz</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="mx-3">
-                        <hr>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="d-flex flex-row align-items-center flex-fill">
-                                <span class="star"><i class="fa-solid fa-1"></i><i class="fa-solid fa-5"></i></span>
-                                <div class="d-flex flex-column flex-fill">
-                                    <h5>Ostre spanko i granko</h5>
-                                    <div class="d-flex flex-row align-items-center time-text">
-                                        <h6 class="inprogress">W trakcie</h6>
-                                        <span class="dots mb-2" ></span>
-                                        <h6>Kotruper vs. Kotruper</h6>
-                                    </div>
-                                </div>
-                                <div class="d-flex flex-column d-none">
-                                    <button class="btn btn-info btn-sm join px-3"><i class="fa-solid fa-right-to-bracket"></i> Dołącz</button>
-                                </div>
-                            </div>
-                        </div>
+                        </div>  
+                        <div id="message"></div>
+                        <div id="gameList"></div>
                     </div>
                 </div>
             </div>
@@ -124,13 +73,11 @@
 
         const newGameModal = new bootstrap.Modal(document.getElementById('newGameModal'));
 
-        
-
-        console.log("User:" + getCookie('currentUser'));
-
         $('#preCreateGame').click(() => {
             newGameModal.show();
         });
+
+        $('#refreshList').click(() => {refreshList()});
 
         $('#createGame').click(() => {
             let nazwa = $('#nazwaGry').val();
@@ -140,19 +87,55 @@
             window.location = `/createGame/${size}/${encodeURIComponent(nazwa)}`;
         });
 
+        const idsArray = ['<i class="fa-solid fa-0"></i></i>','<i class="fa-solid fa-1"></i>','<i class="fa-solid fa-2"></i>', '<i class="fa-solid fa-3"></i>', '<i class="fa-solid fa-4"></i>', '<i class="fa-solid fa-5"></i>', '<i class="fa-solid fa-6"></i>', '<i class="fa-solid fa-7"></i>', '<i class="fa-solid fa-8"></i>', '<i class="fa-solid fa-9"></i>', '<i class="fa-solid fa-1"></i><i class="fa-solid fa-0"></i>', '<i class="fa-solid fa-1"></i><i class="fa-solid fa-1"></i>', '<i class="fa-solid fa-1"></i><i class="fa-solid fa-2"></i>', '<i class="fa-solid fa-1"></i><i class="fa-solid fa-3"></i>', '<i class="fa-solid fa-1"></i><i class="fa-solid fa-4"></i>', '<i class="fa-solid fa-1"></i><i class="fa-solid fa-5"></i>'];
 
+        
+        const newGameOnList = (game) => {
+            const p1 = game.player1;
+            const p2 = game.player2;
+            const name = game.gameName;
+            const id = game.id;
+            const roomSize = game.roomSize;
+            const icon = idsArray[roomSize];
+            const players = p2 ? `${p1} vs. ${p2}` : p1;
 
+            let gameStatus = '<h6 class="inprogress">W trakcie</h6>';
+            let button = ``;
 
+            if(!p2){
+                gameStatus = `<h6 class="waiting">Oczekuje na 2. gracza...</h6>`;
+                button = `<div class="d-flex flex-column"><button class="btn btn-info btn-sm join px-3" onclick="window.location = '/join/${id}'"><i class="fa-solid fa-right-to-bracket"></i> Dołącz</button></div>`;
+            }
+                
+            let element = `<div class="mx-3 gameItem"><hr><div class="d-flex justify-content-between align-items-center"><div class="d-flex flex-row align-items-center flex-fill"><span class="star">${icon}</span><div class="d-flex flex-column flex-fill"><h5>${name}</h5><div class="d-flex flex-row align-items-center time-text">${gameStatus}<span class="dots mb-2" ></span><h6>${players}</h6></div></div>${button}</div></div></div>`
+            element = $.parseHTML(element);
+            //console.log(element[0]);
+            $(element).appendTo('#gameList');
+            //$('#gameList').append(element);
+        }
 
-        (async() => {
+        const refreshList = async () => {
             let res = await fetch('/get/gameList', {method: 'get'});
             content = await res.json();
-            console.log(content);
+            if(Object.keys(content).length == 0){
+                $('#message').html('<hr><h6>Brak aktywnych gier... Stwórz własną!</h6>');
+                $('#gameList').html('');
+                return; 
+            }
+
+
+            $('#message').html('');
+            $('#gameList').html('');
+            for(let game of content.game){
+                newGameOnList(game);
+            }
+        }
+
+        (async() => {
+            refreshList();
         })();
         
-        const newGameOnList = () => {
-            let element = `<div class="mx-3"><hr><div class="d-flex justify-content-between align-items-center"><div class="d-flex flex-row align-items-center flex-fill"><span class="star"><i class="fa-solid fa-1"></i><i class="fa-solid fa-5"></i></span><div class="d-flex flex-column flex-fill"><h5>Ostre spanko i granko</h5><div class="d-flex flex-row align-items-center time-text"><h6 class="inprogress">W trakcie</h6><span class="dots mb-2" ></span><h6>Kotruper vs. Kotruper</h6></div></div><div class="d-flex flex-column d-none"><button class="btn btn-info btn-sm join px-3"><i class="fa-solid fa-right-to-bracket"></i> Dołącz</button></div></div></div>/div>`
-        }
+
     </script>
   </body>
 </html>

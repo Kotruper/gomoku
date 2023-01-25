@@ -6,6 +6,8 @@ webSocket.onmessage = (message) => {
     console.log(message);
     switch(message.type){
         case 'game_start':
+            boardSize = message.roomSize;
+            createBoard(boardSize);
             if(message.symbol == 88){
                 gameStartX(message);
                 player = 'x';
@@ -70,8 +72,6 @@ const createBoard = (size) => {
         }
     }
 }
-
-createBoard(3);
 
 const gameStartX = (message) => {
     const cellElements = document.querySelectorAll('[data-cell]');

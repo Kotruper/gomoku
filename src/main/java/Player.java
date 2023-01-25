@@ -65,7 +65,7 @@ public class Player {
                 .put("yourname",this.name)
                 .put("othername",other.name)
                 .put("symbol",this.symbol)
-                .put("boardsize", boardsize);
+                .put("roomSize", boardsize);
         Server.sendMessage(this, message);
     }
     public void sendMatchResult(Player winner, Boolean draw) {
