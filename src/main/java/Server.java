@@ -7,10 +7,12 @@ import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.eclipse.jetty.http.HttpStatus;
 import com.mongodb.*;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
+import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.websocket.api.WebSocketException;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import org.json.JSONObject;
@@ -57,7 +59,8 @@ public class Server {
                 res.redirect("/index.html");
             }
             else{
-                res.body("No such user found.");    //TODO how to respond with errors
+                res.redirect("/login.html");    //TODO how to respond with errors
+                res.status(HttpStatus.UNAUTHORIZED_401);
             }
             return res;
         });
@@ -70,7 +73,8 @@ public class Server {
                 res.redirect("/index.html");
             }
             else{
-                res.body("Username is taken."); //TODO how to respond with errors
+                res.redirect("/login.html"); //TODO how to respond with errors
+                res.status(HttpStatus.BAD_REQUEST_400);
             }
             return res;
         });
