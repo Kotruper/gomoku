@@ -1,4 +1,5 @@
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -6,10 +7,12 @@ import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.eclipse.jetty.http.HttpStatus;
 import com.mongodb.*;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
+import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.websocket.api.WebSocketException;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import org.json.JSONObject;
@@ -35,6 +38,7 @@ public class Server {
         staticFiles.location("/public"); //index.html is served at localhost:4567 (default port)
         staticFiles.expireTime(600);
         webSocket("/socket", GameWebSocketHandler.class);
+        webSocket("/scores", ScoresWebSocketHandler.class);
         init();
         get("/join",(req,res)->{
             if(ensureUserIsLoggedIn(req,res)){
@@ -55,7 +59,8 @@ public class Server {
                 res.redirect("/index.html");
             }
             else{
-                res.body("No such user found.");    //TODO how to respond with errors
+                res.redirect("/login.html");    //TODO how to respond with errors
+                res.status(HttpStatus.UNAUTHORIZED_401);
             }
             return res;
         });
@@ -68,7 +73,8 @@ public class Server {
                 res.redirect("/index.html");
             }
             else{
-                res.body("Username is taken."); //TODO how to respond with errors
+                res.redirect("/login.html"); //TODO how to respond with errors
+                res.status(HttpStatus.BAD_REQUEST_400);
             }
             return res;
         });
@@ -79,14 +85,16 @@ public class Server {
             res.redirect("index.html");
             return res;
         });
-        get("/createGame/:size",(req,res)->{
+        get("/createGame/:size/:gamename",(req,res)->{ //TODO Dodać obsługę tworzenia gry z nazwą
             if(ensureUserIsLoggedIn(req,res)){
                 String user = req.session().attribute("currentUser");
                 Player newPlayer = new Player(user);
                 sessionIDPlayerMap.put(req.session().id(), newPlayer);
 
                 int boardSize = Integer.decode(req.params("size"));
-                GameController.createGame(newPlayer,boardSize);
+                String gameName = req.params("gamename");
+                gameName = java.net.URLDecoder.decode(gameName, StandardCharsets.UTF_8);
+                GameController.createGame(newPlayer,boardSize, gameName);
                 res.redirect("/game.html");
             }
             return res;
@@ -111,8 +119,9 @@ public class Server {
             for (Match game : games){
                 JSONObject gameInfo = new JSONObject()
                         .put("id",game.getId())
-                        .put("player1", game.getP1())
-                        .put("player2", game.getP2());
+                        .put("player1", game.getP1() != null ? game.getP1().getName() : null)
+                        .put("player2", game.getP2() != null ? game.getP2().getName() : null)
+                        .put("gamename", game.getGameName());
                 message.append("game",gameInfo);
             }
             return String.valueOf(message);
