@@ -1,3 +1,9 @@
+import com.mongodb.BasicDBObject;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Updates;
+import org.bson.Document;
+
+import javax.print.Doc;
 
 public class Match extends Thread {
     private class SlotFilledException extends Exception{public SlotFilledException(String errMsg){super(errMsg);}}
@@ -72,6 +78,9 @@ public class Match extends Thread {
 
         }while(!hasGameEnded(lastMove));
         Boolean isDraw = (turn == maxMoves);
+        if(isDraw == false) {
+            Server.dbCollection.updateOne(new Document("Username", currentPlayer.getName()), Updates.set("Wins", (int) ((Document) Server.dbCollection.find(new Document("Username", currentPlayer.getName())).first()).get("liczba") + 1));
+        };
         p1.sendMatchResult(currentPlayer, isDraw);
         p2.sendMatchResult(currentPlayer, isDraw);  //TODO: send results to a database
     }

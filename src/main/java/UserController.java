@@ -1,3 +1,7 @@
+import com.mongodb.BasicDBObject;
+import com.mongodb.DBCursor;
+import org.bson.Document;
+
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -8,14 +12,15 @@ import java.security.NoSuchAlgorithmException;
 //TODO: DB connection, password req?
 public class UserController {
 
-    private static Map<String, String> userHashPasswordMap = new ConcurrentHashMap<>();
+//    private static Map<String, String> userHashPasswordMap = new ConcurrentHashMap<>();
 
     public static boolean createUser(String username, String password) {
-        if (userHashPasswordMap.containsKey(username)) {
+        if (((Document) Server.dbCollection.find(new Document("Username",username)).first()) == null) {
             return false;
         } else {
             try {
-                userHashPasswordMap.put(username, toHexString(getSHA(password)));
+//                userHashPasswordMap.put(username, toHexString(getSHA(password)));
+                Server.dbCollection.insertOne(new Document("Username", username).append("Password", toHexString(getSHA(password))).append("Wins", 0)); // dodawanie do DB krotki (Username, Password, Wins)
             }
             catch (NoSuchAlgorithmException e){
                 System.out.println("Exception thrown for incorrect algorithm: " + e);
@@ -27,7 +32,8 @@ public class UserController {
     public static boolean authenticate(String username, String password) {
         try {
             String hashedPass = toHexString(getSHA(password));
-            return (Objects.equals(userHashPasswordMap.get(username), hashedPass)) && password != null;
+//            return (Objects.equals(userHashPasswordMap.get(username), hashedPass)) && password != null;
+            return (Objects.equals(((Document) Server.dbCollection.find(new Document("Username",username)).first()).get("Password"), hashedPass)) && password != null; // do sprawdzanie przez bazę danych
         }
         catch (NoSuchAlgorithmException e){
             System.out.println("Exception thrown for incorrect algorithm: " + e);
