@@ -80,7 +80,8 @@ public class Match extends Thread {
         Boolean isDraw = (turn == maxMoves);
         if(isDraw == false) {
             Server.dbCollection.updateOne(new Document("Username", currentPlayer.getName()), Updates.set("Wins", (int) ((Document) Server.dbCollection.find(new Document("Username", currentPlayer.getName())).first()).get("Wins") + 1));
-        };
+            ScoreTable.broadcastUpdatedScores();
+        }
         p1.sendMatchResult(currentPlayer, isDraw);
         p2.sendMatchResult(currentPlayer, isDraw);  //TODO: send results to a database
     }
