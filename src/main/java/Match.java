@@ -107,7 +107,9 @@ public class Match extends Thread {
         }
     }
     public void playerLeaves(Player p){
-        getOtherPlayer(p).sendErr("The other player has left!");
+        Player other = getOtherPlayer(p);
+        if (other != null)
+            other.sendErr("The other player has left!");
     }
     private Player getOtherPlayer(Player p){
         if (p == p1)
