@@ -5,7 +5,7 @@
 }
 
 :root {
-  --cell-size: 75px;
+  --cell-size: 5vh;
   --mark-size: calc(var(--cell-size) * 0.9);
 }
 
@@ -15,8 +15,6 @@ body {
 
 .board {
   margin: 0;
-  width: 100vw;
-  height: 88vh;
   display: grid;
   justify-content: center;
   align-content: center;
@@ -135,4 +133,21 @@ body {
 
 .winning-message.show {
   display: flex;
+}
+
+.float{
+	position:fixed;
+	width:60px;
+	height:60px;
+	top:40px;
+	right:40px;
+	background-color:#0C9;
+	color:rgb(22, 22, 22);
+	border-radius:50px;
+	text-align:center;
+	box-shadow: 2px 2px 3px #999;
+}
+
+.my-float{
+	margin-top:22px;
 }

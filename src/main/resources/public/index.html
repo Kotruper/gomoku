@@ -17,9 +17,11 @@
             <div class="col-md-12">
                 <div class="card">
                     <div class="d-flex justify-content-between flex-column">
-                        <div class="d-flex flex-row justify-content-between align-items-center">
+                        <div class="d-flex flex-row justify-content-between align-items-center card-header">
                             <h1 class="font-weight-bold">Lista aktywnych gier</h1>
                             <div class="d-flex align-items-end">
+                                <button class="btn btn-dark btn-sm new p-2 px-4 mr-3" id="showTable" style="border-radius: 25px; color: white;" data-bs-toggle="offcanvas" data-bs-target="#offcanvasExample" aria-controls="offcanvasExample"><i class="fa-solid fa-ranking-star"></i> Tabela</button>
+                                <div style="min-width: 10px;"></div>
                                 <button class="btn btn-info btn-sm new p-2 px-4 mr-3" id="refreshList" style="border-radius: 25px;"><i class="fa-solid fa-arrows-rotate"></i> Odśwież listę</button>
                                 <div style="min-width: 10px;"></div>
                                 <button class="btn btn-success btn-sm new p-2 px-4 ml-3" id="preCreateGame" style="border-radius: 25px;"><i class="fa fa-plus"></i> Nowa gra</button>
@@ -59,7 +61,29 @@
                 </div>
             </div>
           </div>
+          <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasExample" aria-labelledby="offcanvasExampleLabel">
+            <div class="offcanvas-header">
+              <h5 class="offcanvas-title m-auto mt-3 text-center" id="offcanvasExampleLabel"><i class="fa-solid fa-ranking-star mr-2"></i>  Aktualny ranking:</h5>
+              <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            </div>
+            <div class="offcanvas-body">
+                <table class="table">
+                    <thead>
+                      <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Login</th>
+                        <th scope="col">Wygrane</th>
+                      </tr>
+                    </thead>
+                    <tbody id="rankingTable">
+                    </tbody>
+                  </table>
+            </div>
+          </div>
     </div>
+    <a href="/logout" class="float">
+        <i class="fa-solid fa-right-from-bracket my-float"></i>
+    </a>
     <script src="https://code.jquery.com/jquery-3.6.1.slim.min.js" ></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.11.6/umd/popper.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/js/bootstrap.min.js"></script>
@@ -136,6 +160,28 @@
         })();
         
 
+    </script>
+    <script>
+        const generateRanking = (message) => {
+            const rankingTable = $('#rankingTable');
+            rankingTable.html('');
+            const table = message.sort((a, b) => (a.score < b.score) ? 1 : -1);
+            let i = 1;
+            for(let user of table){
+                if(i == 11)
+                    break;
+                console.log(user);
+                rankingTable.append(`<tr><th scope="row">${i}</th><td>${user.username}</td><td>${user.score}</td></tr>`);
+                i++;
+            }
+        }
+
+        const webSocketScores = new WebSocket("ws://" + location.hostname + ":" + location.port + "/scores");
+        webSocketScores.onmessage = (message) => {
+            message = JSON.parse(message.data).entry    
+            console.log(`[WEBSOCKET_SCORE - MESSAGE]`, message);
+            generateRanking(message)
+        }   
     </script>
   </body>
 </html>

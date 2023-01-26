@@ -11,18 +11,76 @@
     <title>Tic Tac Toe</title>
   </head>
   <body>
-    <div class="board" id="board">
-      
+    <div class="container">
+      <div class="row mt-5 ">
+        <div class="col-md-12">
+            <div class="card">
+              <div class="card-header row">
+                <h5 class="col-3 mt-2">Grasz jako <span id="figure">___</span></h5>
+                <div class="col-9">
+                  <button class="btn btn-dark btn-sm new p-2 px-4 mr-3 float-end" id="refreshList" style="border-radius: 25px; color: white;" data-bs-toggle="offcanvas" data-bs-target="#offcanvasExample" aria-controls="offcanvasExample"><i class="fa-solid fa-ranking-star"></i> Tabela</button>
+                </div>
+              </div>
+              <div class="board my-4" id="board"></div>
+            </div>
+          </div>
+        </div> 
+      </div> 
+      <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasExample" aria-labelledby="offcanvasExampleLabel">
+        <div class="offcanvas-header">
+          <h5 class="offcanvas-title m-auto mt-3 text-center" id="offcanvasExampleLabel"><i class="fa-solid fa-ranking-star mr-2"></i>  Aktualny ranking:</h5>
+          <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            <table class="table">
+                <thead>
+                  <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Login</th>
+                    <th scope="col">Wygrane</th>
+                  </tr>
+                </thead>
+                <tbody id="rankingTable">
+                </tbody>
+              </table>
+        </div>
+      </div>
     </div>
 
+
     <!-- Modal Window -->
-    <div class="winning-message" id="winningMessage">
-      <div data-winning-message-text></div>
+    <div class="winning-message show" id="winningMessage">
+      <div data-winning-message-text>Oczekiwanie na drugiego gracza</div>
       <button id="restartButton" class="btn btn-warning" onclick="window.location = '/'">Powrót do lobby</button>
     </div>
+    <a href="/logout" class="float">
+      <i class="fa-solid fa-right-from-bracket my-float"></i>
+    </a>
     <script src="https://code.jquery.com/jquery-3.6.1.slim.min.js" ></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.11.6/umd/popper.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/js/bootstrap.min.js"></script>
     <script src="websocketDemo.js"></script>
+    <script>
+      const generateRanking = (message) => {
+            const rankingTable = $('#rankingTable');
+            rankingTable.html('');
+            const table = message.sort((a, b) => (a.score < b.score) ? 1 : -1);
+            let i = 1;
+            for(let user of table){
+                if(i == 11)
+                    break;
+                console.log(user);
+                rankingTable.append(`<tr><th scope="row">${i}</th><td>${user.username}</td><td>${user.score}</td></tr>`);
+                i++;
+            }
+        }
+
+        const webSocketScores = new WebSocket("ws://" + location.hostname + ":" + location.port + "/scores");
+        webSocketScores.onmessage = (message) => {
+            message = JSON.parse(message.data).entry    
+            console.log(`[WEBSOCKET_SCORE - MESSAGE]`, message);
+            generateRanking(message)
+        }   
+    </script>
   </body>
 </html>

@@ -8,16 +8,24 @@ webSocket.onmessage = (message) => {
         case 'game_start':
             boardSize = message.roomSize;
             createBoard(boardSize);
+            
             if(message.symbol == 88){
                 gameStartX(message);
                 player = 'x';
+                $('#figure').html('<i class="fa-solid fa-xmark"></i>');
+                winningMessageElement.classList.remove('show');
             }   
             else{
                 gameStartO(message);
                 player = 'o';
+                $('#figure').html('<i class="fa-regular fa-circle"></i>');
+                winningMessageTextElement.innerText = 'Oczekiwanie na pierwszy ruch przeciwnika...';
             }
+            
+            
             break;
         case 'game_move':
+            winningMessageElement.classList.remove('show');
             console.log("Move:", message);
             gameMove(message);
             break;
@@ -166,39 +174,3 @@ const gameStop = () => {
     winningMessageTextElement.innerText = `Twój przeciwnik opuścił rozgrywkę :(`;
     winningMessageElement.classList.add('show');
 }
-
-
-
-/*//Send message if "Send" is clicked
-id("send").addEventListener("click", function () {
-    sendMessage(id("message").value);
-});
-
-//Send message if enter is pressed in the input field
-id("message").addEventListener("keypress", function (e) {
-    if (e.keyCode === 13) { sendMessage(e.target.value); }
-});
-
-//Send a message if it's not empty, then clear the input field
-function sendMessage(message) {
-    if (message !== "") {
-        webSocket.send(message);
-        id("message").value = "";
-    }
-}
-
-//Update the chat-panel, and the list of connected users
-function updateChat(msg) {
-    var data = JSON.parse(msg.data);
-    insert("chat", "<p>"+msg.data+"</p>");
-}
-
-//Helper function for inserting HTML as the first child of an element
-function insert(targetId, message) {
-    id(targetId).insertAdjacentHTML("afterbegin", message);
-}
-
-//Helper function for selecting element by id
-function id(id) {
-    return document.getElementById(id);
-}*/
