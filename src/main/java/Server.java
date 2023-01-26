@@ -50,6 +50,12 @@ public class Server {
             }
             return res;
         });
+        get("/test", (req,res)->{
+            if(ensureUserIsLoggedIn(req,res)){
+                res.status(200);
+            }
+            return res;
+        });
         post("/post/login",(req,res)->{
             String username = req.queryParams("username");
             String password = req.queryParams("password");

@@ -141,11 +141,32 @@ body {
 	height:60px;
 	top:40px;
 	right:40px;
+	background-color:rgb(204, 201, 0);
+	color:rgb(22, 22, 22);
+	border-radius:50px;
+	text-align:center;
+	box-shadow: 2px 2px 3px #999;
+}
+
+.float2{
+	position:fixed;
+	width:60px;
+	height:60px;
+	top:40px;
+	right:40px;
 	background-color:#0C9;
 	color:rgb(22, 22, 22);
 	border-radius:50px;
 	text-align:center;
 	box-shadow: 2px 2px 3px #999;
+}
+
+.float:hover{
+  color: rgb(59, 59, 59);
+}
+
+.float2:hover{
+  color: rgb(59, 59, 59);
 }
 
 .my-float{

@@ -81,9 +81,12 @@
             </div>
           </div>
     </div>
-    <a href="/logout" class="float">
+    <a href="/login.html" class="float2" id="loginButton">
         <i class="fa-solid fa-right-from-bracket my-float"></i>
-    </a>
+      </a>
+      <a href="/logout" class="float" id="logoutButton">
+        <i class="fa-solid fa-right-from-bracket my-float"></i>
+      </a>
     <script src="https://code.jquery.com/jquery-3.6.1.slim.min.js" ></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.11.6/umd/popper.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/js/bootstrap.min.js"></script>
@@ -162,6 +165,17 @@
 
     </script>
     <script>
+        (async() => {
+            const response = await fetch('/test', {redirect: 'manual'});
+            console.log(response);
+            if(response.status == 200){
+                $('#loginButton').addClass('d-none');
+            }else{
+                $('#logoutButton').addClass('d-none');
+            }
+        })();
+
+
         const generateRanking = (message) => {
             const rankingTable = $('#rankingTable');
             rankingTable.html('');
