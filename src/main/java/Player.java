@@ -6,7 +6,9 @@ import java.util.Scanner;
 public class Player {
     Move lastMove = null;
 
-    public void setSession(Session s){this.ses = s;}
+    public void setSession(Session s){this.ses = s; this.ready = true;}
+
+    Boolean ready = false;
     Session ses = null;
     public String getName() {
         return name;

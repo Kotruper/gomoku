@@ -59,7 +59,7 @@ public class Match extends Thread {
 
     @Override
     public void run(){
-        while (p1 == null || p1.ses == null || p2 == null || p2.ses == null){
+        while (p1 == null || p1.ready == false || p2 == null || p2.ready == false ){
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
@@ -90,7 +90,9 @@ public class Match extends Thread {
         }while(!hasGameEnded(lastMove));
         Boolean isDraw = (turn == maxMoves);
         if(isDraw == false) {
-            Server.dbCollection.updateOne(new Document("Username", currentPlayer.getName()), Updates.set("Wins", (int) ((Document) Server.dbCollection.find(new Document("Username", currentPlayer.getName())).first()).get("Wins") + 1));
+            if (currentPlayer.ses != null){
+                Server.dbCollection.updateOne(new Document("Username", currentPlayer.getName()), Updates.set("Wins", (int) ((Document) Server.dbCollection.find(new Document("Username", currentPlayer.getName())).first()).get("Wins") + 1));
+            }
             ScoreTable.broadcastUpdatedScores();
         }
         p1.sendMatchResult(currentPlayer, isDraw);
