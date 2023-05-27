@@ -3,7 +3,7 @@ import java.util.ArrayList;
 public class BotBrain {
 
     private static final int WIN_SCORE = 100000000;
-    private static final int INIT_DEPTH = 10;
+    private static final int INIT_DEPTH = 3;
     private int evaluationCount = 0; //for testing
 
 
@@ -24,7 +24,6 @@ public class BotBrain {
     public void receiveMyMove(int x, int y) {
         board.addStone(x,y,mySymbol);
     }
-    static int test = 0;
     public Player.Move getBestMove(){
 
         Player.Move nextMove = null;
@@ -43,13 +42,14 @@ public class BotBrain {
             return nextMove;
         } else {
             // If there is no such move, search the minimax tree with specified depth.
-            nextMove = (Player.Move) minimaxSearchAB(INIT_DEPTH, new Board(board), true, -1.0, WIN_SCORE)[1];
+            Object[] calculatedMove = minimaxSearchAB(INIT_DEPTH, new Board(dummy), true, -1.0, WIN_SCORE);
+            nextMove = (Player.Move) (calculatedMove[1]);
         }
         System.out.println("Cases calculated: " + evaluationCount + " Calculation time: " + (System.currentTimeMillis() - startTime) + " ms");
         //thinkingFinished();
 
         evaluationCount=0;
-
+        receiveMyMove(nextMove.X, nextMove.Y);
         return nextMove;
     }
 
@@ -57,7 +57,7 @@ public class BotBrain {
 
         // Last depth (terminal node), evaluate the current board score.
         if(depth == 0) {
-            Object[] x = {evaluateBoardForWhite(dummyBoard, !max), null, null};
+            Object[] x = {evaluateBoardForWhite(dummyBoard, !max), null};
             return x;
         }
 
@@ -66,11 +66,11 @@ public class BotBrain {
 
         // If there is no possible move left, treat this node as a terminal node and return the score.
         if(allPossibleMoves.size() == 0) {
-            Object[] x = {evaluateBoardForWhite(dummyBoard, !max), null, null};
+            Object[] x = {evaluateBoardForWhite(dummyBoard, !max), null};
             return x;
         }
 
-        Object[] bestMove = new Object[2]; //int score, Player.Move move
+        Object[] bestMove = new Object[2]; //double score, Player.Move move
 
         // Generate Minimax Tree and calculate node scores.
         if(max) {

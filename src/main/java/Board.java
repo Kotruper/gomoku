@@ -32,7 +32,7 @@ public class Board {
         boardMatrix[posY][posX] = ' ';
     }
     public void removeStoneNoGUI(Player.Move move){
-        boardMatrix[move.X][move.Y] = ' ';
+        boardMatrix[move.Y][move.X] = ' ';
     }
     public void addStoneNoGUI(int posX, int posY, char symbol) {
         boardMatrix[posY][posX] = symbol;
@@ -62,7 +62,7 @@ public class Board {
                     if(j > 0) {
                         if(boardMatrix[i-1][j-1] > 0 ||
                                 boardMatrix[i][j-1] > 0) {
-                            Player.Move move = new Player.Move(i,j);
+                            Player.Move move = new Player.Move(j,i);
                             moveList.add(move);
                             continue;
                         }
@@ -70,13 +70,13 @@ public class Board {
                     if(j < boardSize-1) {
                         if(boardMatrix[i-1][j+1] > 0 ||
                                 boardMatrix[i][j+1] > 0) {
-                            Player.Move move = new Player.Move(i,j);
+                            Player.Move move = new Player.Move(j,i);
                             moveList.add(move);
                             continue;
                         }
                     }
                     if(boardMatrix[i-1][j] > 0) {
-                        Player.Move move = new Player.Move(i,j);
+                        Player.Move move = new Player.Move(j,i);
                         moveList.add(move);
                         continue;
                     }
@@ -85,7 +85,7 @@ public class Board {
                     if(j > 0) {
                         if(boardMatrix[i+1][j-1] > 0 ||
                                 boardMatrix[i][j-1] > 0) {
-                            Player.Move move = new Player.Move(i,j);
+                            Player.Move move = new Player.Move(j,i);
                             moveList.add(move);
                             continue;
                         }
@@ -93,13 +93,13 @@ public class Board {
                     if(j < boardSize-1) {
                         if(boardMatrix[i+1][j+1] > 0 ||
                                 boardMatrix[i][j+1] > 0) {
-                            Player.Move move = new Player.Move(i,j);
+                            Player.Move move = new Player.Move(j,i);
                             moveList.add(move);
                             continue;
                         }
                     }
                     if(boardMatrix[i+1][j] > 0) {
-                        Player.Move move = new Player.Move(i,j);
+                        Player.Move move = new Player.Move(j,i);
                         moveList.add(move);
                         continue;
                     }
