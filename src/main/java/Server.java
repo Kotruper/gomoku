@@ -91,7 +91,7 @@ public class Server {
             res.redirect("index.html");
             return res;
         });
-        get("/createGame/:size/:gamename",(req,res)->{ //TODO Dodać obsługę tworzenia gry z nazwą
+        get("/createGame/:size/:gamename/:bot",(req,res)->{ //TODO Dodać obsługę tworzenia gry z nazwą
             if(ensureUserIsLoggedIn(req,res)){
                 String user = req.session().attribute("currentUser");
                 Player newPlayer = new Player(user);
@@ -99,9 +99,10 @@ public class Server {
 
                 int boardSize = Integer.decode(req.params("size"));
                 String gameName = req.params("gamename");
+                Boolean gameWithBot = Boolean.valueOf(req.params("bot").equals("bot"));
                 gameName = java.net.URLDecoder.decode(gameName, StandardCharsets.UTF_8);
                 System.out.println(gameName);
-                GameController.createGame(newPlayer,boardSize, gameName);
+                GameController.createGame(newPlayer,boardSize, gameName, gameWithBot);
                 res.redirect("/game.html");
             }
             return res;

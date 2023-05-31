@@ -10,7 +10,7 @@ public class GameController {   //TODO: join from game list, join game by ID
     public static void joinAvailableGame(Player p) { //change this
         Match emptyGame = getEmptyGame();
         if (emptyGame == null){
-            Match game = createGame(p,15, "Room #"+defaultRoomNumber++);
+            Match game = createGame(p,15, "Room #"+defaultRoomNumber++, false);
             //Bot stuff
             Bot bocik = new Bot("BOT");
             joinGame(bocik,game);
@@ -49,13 +49,15 @@ public class GameController {   //TODO: join from game list, join game by ID
     }
 
 
-    public static Match createGame(Player p, int boardSize, String gameName){
+    public static Match createGame(Player p, int boardSize, String gameName, Boolean withBot){
         Match game = new Match(p, boardSize, gameName);
         game.start();
         playerMatchMap.put(p, game);
         //Bot Stuff
-        Bot bocik = new Bot("BOT");
-        joinGame(bocik,game);
+        if (withBot){
+            Bot bocik = new Bot("Mirosław Gomoku");
+            joinGame(bocik,game);
+        }
         return game;
     }
 

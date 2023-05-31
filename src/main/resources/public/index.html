@@ -50,7 +50,11 @@
                             </div>
                             <div class="mb-3">
                                 <label class="form-label" for="rozmiarPlanszy">Rozmiar planszy</label>
-                                <input class="form-control" id="rozmiarPlanszy" type="number" min="3" max="15" step="1" value="3" placeholder="Rozmiar planszy"/>
+                                <input class="form-control" id="rozmiarPlanszy" type="number" min="3" max="15" step="1" value="15" placeholder="Rozmiar planszy"/>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label" for="zBotem">Graj z botem</label>
+                                <input class="form-check-input" id="zBotem" type="checkbox" value=""/>
                             </div>
                         </form>
                     </div>
@@ -109,9 +113,10 @@
         $('#createGame').click(() => {
             let nazwa = $('#nazwaGry').val();
             let size = $('#rozmiarPlanszy').val();
+            let isBot = $('#zBotem').prop('checked');
             if(nazwa == '')
                 nazwa = 'brak';
-            window.location = `/createGame/${size}/${encodeURIComponent(nazwa)}`;
+            window.location = `/createGame/${size}/${encodeURIComponent(nazwa)}/${(isBot ? "bot" : "player")}`;
         });
 
         const idsArray = ['<i class="fa-solid fa-0"></i></i>','<i class="fa-solid fa-1"></i>','<i class="fa-solid fa-2"></i>', '<i class="fa-solid fa-3"></i>', '<i class="fa-solid fa-4"></i>', '<i class="fa-solid fa-5"></i>', '<i class="fa-solid fa-6"></i>', '<i class="fa-solid fa-7"></i>', '<i class="fa-solid fa-8"></i>', '<i class="fa-solid fa-9"></i>', '<i class="fa-solid fa-1"></i><i class="fa-solid fa-0"></i>', '<i class="fa-solid fa-1"></i><i class="fa-solid fa-1"></i>', '<i class="fa-solid fa-1"></i><i class="fa-solid fa-2"></i>', '<i class="fa-solid fa-1"></i><i class="fa-solid fa-3"></i>', '<i class="fa-solid fa-1"></i><i class="fa-solid fa-4"></i>', '<i class="fa-solid fa-1"></i><i class="fa-solid fa-5"></i>'];
