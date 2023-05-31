@@ -2,9 +2,11 @@ import java.util.ArrayList;
 
 public class BotBrain {
 
-    private static final int WIN_SCORE = 100000000;
+    private static final int WIN_SCORE = 10000000;
     private static final int INIT_DEPTH = 3;
     private int evaluationCount = 0; //for testing
+
+    private final Boolean debug = false;
 
 
 
@@ -163,6 +165,9 @@ public class BotBrain {
                 }
             }
         }
+        if(debug){
+            System.out.println("Best Move for: depth: "+depth+" alpha: "+alpha+" beta: "+beta+" score: "+bestMove[0]+" move: "+bestMove[1]+"\n");
+        }
 
         // Return the best move found in this depth
         return bestMove;
@@ -265,7 +270,7 @@ public class BotBrain {
     }
     public void evaluateDirections(char[][] boardMatrix, int i, int j, boolean isBot, boolean botsTurn, int[] eval) {
         // Check if the selected player has a stone in the current cell
-        if (boardMatrix[i][j] == (isBot ? mySymbol : enemySymbol)) {
+        if (boardMatrix[i][j] == (isBot ? enemySymbol : mySymbol)) { //Just had to switch these two?
             // Increment consecutive stones count
             eval[0]++;
         }
