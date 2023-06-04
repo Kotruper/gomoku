@@ -164,8 +164,8 @@ public class Match extends Thread {
 
     private boolean checkLine(int xShift, int yShift, char symbol, Player.Move pos){
         int countNInARow = 0;
-        int startX = pos.X - inARow * xShift;
-        int startY = pos.Y - inARow * yShift;
+        int startX = pos.X - (inARow-1) * xShift;
+        int startY = pos.Y - (inARow-1) * yShift;
 
         for (int i = 0; i < (inARow * 2) - 1; i++) {
             int checkX = startX + xShift * i, checkY = startY + yShift * i;
