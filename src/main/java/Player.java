@@ -98,5 +98,8 @@ public class Player {
         public String toString() {
             return "["+X+","+Y+"]";
         }
+        public int cartDist(Move other){
+            return Math.abs(this.X - other.X) + Math.abs(this.Y - other.Y);
+        }
     }
 }

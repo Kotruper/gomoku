@@ -1,7 +1,9 @@
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class Board {
     private char[][] boardMatrix; // " ", "X", "O"
+    private Player.Move lastMove = null;
 
     private void initializeBoard(int boardSize) {
         for (int i = 0; i < boardSize; i++) {
@@ -24,6 +26,7 @@ public class Board {
                 boardMatrix[i][j] = matrixToCopy[i][j];
             }
         }
+        this.lastMove = board.lastMove;
     }
     public int getBoardSize() {
         return boardMatrix.length;
@@ -44,6 +47,7 @@ public class Board {
         // Check whether the cell is empty or not
         if(boardMatrix[posY][posX] != ' ') return false;
 
+        lastMove = new Player.Move(posX,posY);
         boardMatrix[posY][posX] = symbol;
         return true;
     }
@@ -107,9 +111,43 @@ public class Board {
 
             }
         }
-
+        moveList.sort((o1, o2) -> o1.cartDist(lastMove) - o2.cartDist(lastMove));
         return moveList;
 
+    }
+
+    public String key(){
+        //Byte[] packed = new Byte[(getBoardSize()*getBoardSize()/4 + 8)];
+        //Arrays.fill(packed,(byte)0);
+        String key = "";
+        for (char[] row : boardMatrix){
+            for (char symbol: row){
+                key+=symbol;
+            }
+        }
+        /*
+        for (int rowI=0; rowI<boardMatrix.length; rowI++){
+            for (int colI=0; colI<boardMatrix.length; colI++){
+                byte adding = 0;
+                int index = rowI * boardMatrix.length + colI;
+                int subIndex = (index % 4) * 2;
+                int uberIndex = Math.floorDiv(index,4);
+                switch (boardMatrix[colI][rowI]){
+                    case ' ':
+                        adding = 0;
+                        break;
+                    case 'X':
+                        adding = 1;
+                        break;
+                    case 'O':
+                        adding = 2;
+                        break;
+                }
+                packed[uberIndex] = (byte) (packed[uberIndex] | (byte) (adding<<subIndex));
+            }
+        }
+         */
+        return key;
     }
     public char[][] getBoardMatrix() {
         return boardMatrix;

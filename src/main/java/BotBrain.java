@@ -1,34 +1,57 @@
-import java.util.ArrayList;
+import java.util.*;
+import java.util.concurrent.*;
 
 public class BotBrain {
 
-    private static final int WIN_SCORE = 10000000;
-    private static final int INIT_DEPTH = 3;
+    private static final int WIN_SCORE = 100_000_000;
+
+
+    private static final int INIT_DEPTH = 4;
     private int evaluationCount = 0; //for testing
+    private int cacheRetrievalCount = 0;
+
+    private ExecutorService exec;
+
+    private int[] nodeDepthEntered = new int[10];
 
     private final Boolean debug = false;
 
+    private LinkedList<Object[]> moveHistory = new LinkedList<Object[]>();
 
+    private static HashMap<String,Double> cache = new HashMap<>();
 
     private Board board;
 
     private char mySymbol = 'X';
 
     private char enemySymbol = 'O';
+
     public BotBrain(int boardsize) {
         board = new Board(boardsize);
     }
 
     public void receiveEnemyMove(int x, int y) {
-        board.addStone(x,y,enemySymbol);
+        board.addStone(x, y, enemySymbol);
     }
 
     public void receiveMyMove(int x, int y) {
-        board.addStone(x,y,mySymbol);
+        board.addStone(x, y, mySymbol);
     }
-    public Player.Move getBestMove(){
+
+    private void updateHistory(Object[] move, int depth) {
+        int historySize = 1000;
+        Object[] newBestMove = new Object[]{move[0], move[1], depth};
+        moveHistory.add(newBestMove);
+        if (moveHistory.size() > historySize) {
+            moveHistory.removeFirst();
+        }
+    }
+
+    public Player.Move getBestMove() {
 
         Player.Move nextMove = null;
+
+        Arrays.fill(nodeDepthEntered, 0);
 
         // Used for benchmarking purposes only.
         //thinkingStarted();
@@ -36,29 +59,63 @@ public class BotBrain {
 
         // Check if any available move can finish the game to make sure the AI always
         // takes the opportunity to finish the game.
-        //nextMove = searchWinningMove(board); Unnecessary?
 
         Board dummy = new Board(board);
 
-        if(nextMove != null ) {
+        nextMove = searchWinningMove(dummy);
+
+        if (nextMove != null) {
             return nextMove;
         } else {
             // If there is no such move, search the minimax tree with specified depth.
-            Object[] calculatedMove = minimaxSearchAB(INIT_DEPTH, new Board(dummy), true, -1.0, WIN_SCORE);
+            Object[] calculatedMove = minimaxSearchAB(INIT_DEPTH, new Board(dummy), !true, -1.0, WIN_SCORE);
             nextMove = (Player.Move) (calculatedMove[1]);
+            System.out.println("Calc: " + calculatedMove[0] + " Move: " + calculatedMove[1]);
         }
-        System.out.println("Cases calculated: " + evaluationCount + " Calculation time: " + (System.currentTimeMillis() - startTime) + " ms");
+        System.out.println("Cases calculated: " + evaluationCount + " Cases retrieved from cache: " + cacheRetrievalCount +" Calculation time: " + (System.currentTimeMillis() - startTime) + " ms");
         //thinkingFinished();
+        /*
+        for (int i = 0; i < moveHistory.size(); i++){
+            System.out.println(" ".repeat((int)moveHistory.get(i)[2])+i+": S="+ String.format("%,.2f",moveHistory.get(i)[0])+" YX="+moveHistory.get(i)[1]+" D="+moveHistory.get(i)[2]);
+        }
+         */
 
-        evaluationCount=0;
+        for (int i = 0; i < nodeDepthEntered.length; i++) {
+            if (nodeDepthEntered[i] > 0)
+                System.out.println("Node at depth " + i + " entered " + nodeDepthEntered[i] + " times");
+        }
+
+        evaluationCount = 0;
         receiveMyMove(nextMove.X, nextMove.Y);
         return nextMove;
     }
 
+    private Player.Move searchWinningMove(Board board) {
+        ArrayList<Player.Move> allPossibleMoves = board.generateMoves();
+
+        Board dummyBoard = new Board(board);
+        // Iterate for all possible moves
+        for(Player.Move move : allPossibleMoves) {
+            evaluationCount++;
+            // Create a temporary board that is equivalent to the current board
+
+            // Play the move on that temporary board without drawing anything
+            dummyBoard.addStoneNoGUI(move, mySymbol);
+
+            // If the white player has a winning score in that temporary board, return the move.
+            if(getScore(dummyBoard,false,false) >= WIN_SCORE) {
+                return move;
+            }
+            dummyBoard.removeStoneNoGUI(move);
+        }
+        return null;
+    }
+
     private Object[] minimaxSearchAB(int depth, Board dummyBoard, boolean max, double alpha, double beta) {
+        nodeDepthEntered[depth]++; //testing
 
         // Last depth (terminal node), evaluate the current board score.
-        if(depth == 0) {
+        if (depth == 0) {
             Object[] x = {evaluateBoardForWhite(dummyBoard, !max), null};
             return x;
         }
@@ -67,7 +124,7 @@ public class BotBrain {
         ArrayList<Player.Move> allPossibleMoves = dummyBoard.generateMoves();
 
         // If there is no possible move left, treat this node as a terminal node and return the score.
-        if(allPossibleMoves.size() == 0) {
+        if (allPossibleMoves.size() == 0) {
             Object[] x = {evaluateBoardForWhite(dummyBoard, !max), null};
             return x;
         }
@@ -75,11 +132,11 @@ public class BotBrain {
         Object[] bestMove = new Object[2]; //double score, Player.Move move
 
         // Generate Minimax Tree and calculate node scores.
-        if(max) {
+        if (max) {
             // Initialize the starting best move with -infinity.
             bestMove[0] = -1.0;
             // Iterate for all possible moves that can be made.
-            for(Player.Move move : allPossibleMoves) {
+            for (Player.Move move : allPossibleMoves) {
 
                 // Play the move on that temporary board without drawing anything
                 dummyBoard.addStoneNoGUI(move, mySymbol);
@@ -89,7 +146,7 @@ public class BotBrain {
                 // (if the depth > 0) and searches for the minimum white score in each of the sub trees.
                 // We will find the maximum score of this depth, among the minimum scores found in the
                 // lower depth.
-                Object[] tempMove = minimaxSearchAB(depth-1, dummyBoard, false, alpha, beta);
+                Object[] tempMove = minimaxSearchAB(depth - 1, dummyBoard, false, alpha, beta);
 
                 // backtrack and remove
                 dummyBoard.removeStoneNoGUI(move);
@@ -99,8 +156,8 @@ public class BotBrain {
                 // (max score of uncle nodes from one upper level) the whole subtree originating
                 // from that node will be discarded, since the maximizing player will choose the
                 // alpha node over any node with a score lower than the alpha.
-                if((Double)(tempMove[0]) > alpha) {
-                    alpha = (Double)(tempMove[0]);
+                if ((Double) (tempMove[0]) > alpha) {
+                    alpha = (Double) (tempMove[0]);
                 }
                 // Pruning with beta
                 // Beta value holds the minimum score among the uncle nodes from one upper level.
@@ -108,24 +165,23 @@ public class BotBrain {
                 // beta will be eliminated by the minimizing player (upper level). If the score is
                 // higher than (or equal to) beta, break out of loop discarding any remaining nodes
                 // and/or subtrees and return the last move.
-                if((Double)(tempMove[0]) >= beta) {
+                if ((Double) (tempMove[0]) >= beta) {
                     return tempMove;
                 }
 
                 // Find the move with the maximum score.
-                if((Double)tempMove[0] > (Double)bestMove[0]) {
+                if ((Double) tempMove[0] > (Double) bestMove[0]) {
                     bestMove = tempMove;
                     bestMove[1] = move;
                 }
             }
-        }
-        else {
+        } else {
             // Initialize the starting best move using the first move in the list and +infinity score.
             bestMove[0] = 100_000_000.0;
             bestMove[1] = allPossibleMoves.get(0);
 
             // Iterate for all possible moves that can be made.
-            for(Player.Move move : allPossibleMoves) {
+            for (Player.Move move : allPossibleMoves) {
                 // Create a temporary board that is equivalent to the current board
 
                 // Play the move on that temporary board without drawing anything
@@ -136,7 +192,7 @@ public class BotBrain {
                 // (if the depth > 0) and searches for the maximum white score in each of the sub trees.
                 // We will find the minimum score of this depth, among the maximum scores found in the
                 // lower depth.
-                Object[] tempMove = minimaxSearchAB(depth-1, dummyBoard, true, alpha, beta);
+                Object[] tempMove = minimaxSearchAB(depth - 1, dummyBoard, true, alpha, beta);
 
                 dummyBoard.removeStoneNoGUI(move);
 
@@ -145,8 +201,8 @@ public class BotBrain {
                 // (min score of uncle nodes from one upper level) the whole subtree originating
                 // from that node will be discarded, since the minimizing player will choose the
                 // beta node over any node with a score higher than the beta.
-                if(((Double)tempMove[0]) < beta) {
-                    beta = (Double)(tempMove[0]);
+                if (((Double) tempMove[0]) < beta) {
+                    beta = (Double) (tempMove[0]);
                 }
                 // Pruning with alpha
                 // Alpha value holds the maximum score among the uncle nodes from one upper level.
@@ -154,36 +210,46 @@ public class BotBrain {
                 // alpha will be eliminated by the maximizing player (upper level). If the score is
                 // lower than (or equal to) alpha, break out of loop discarding any remaining nodes
                 // and/or subtrees and return the last move.
-                if((Double)(tempMove[0]) <= alpha) {
+                if ((Double) (tempMove[0]) <= alpha) {
                     return tempMove;
                 }
 
                 // Find the move with the minimum score.
-                if((Double)tempMove[0] < (Double)bestMove[0]) {
+                if ((Double) tempMove[0] < (Double) bestMove[0]) {
                     bestMove = tempMove;
                     bestMove[1] = move;
                 }
             }
         }
-        if(debug){
-            System.out.println("Best Move for: depth: "+depth+" alpha: "+alpha+" beta: "+beta+" score: "+bestMove[0]+" move: "+bestMove[1]+"\n");
+        if (debug) {
+            System.out.println("Best Move for: depth: " + depth + " alpha: " + alpha + " beta: " + beta + " score: " + bestMove[0] + " move: " + bestMove[1] + "\n");
         }
 
         // Return the best move found in this depth
+        //updateHistory(bestMove, depth);
+        //cache.put(board.key(), (Double) bestMove[0]); caching is hard, apparently
         return bestMove;
     }
 
     // This function calculates the relative score of the white player against the black.
-    // (i.e. how likely is white player to win the game before the black player)
+    // (i.e. how likely is white player (ai) to win the game before the black player (user))
     // This value will be used as the score in the Minimax algorithm.
     public double evaluateBoardForWhite(Board board, boolean blacksTurn) {
+        /*
+        String key = board.key();
+                if(cache.containsKey(key)){
+                    cacheRetrievalCount++;
+                    return cache.get(key);
+                }
+         */
+
         evaluationCount++;
 
         // Get board score of both players.
         double blackScore = getScore(board, true, blacksTurn);
         double whiteScore = getScore(board, false, blacksTurn);
 
-        if(blackScore == 0) blackScore = 1.0;
+        if (blackScore == 0) blackScore = 1.0;
 
         // Calculate relative score of white against black
         return whiteScore / blackScore;
@@ -196,14 +262,38 @@ public class BotBrain {
 
         // Read the board
         char[][] boardMatrix = board.getBoardMatrix();
+        //Threading attempt, makes it about 20x slower
+        /*
+        int scoreSum = 0;
+        List<Callable<Integer>> tasks = new ArrayList<>();
+        tasks.add(() -> evaluateHorizontal(boardMatrix, forBlack, blacksTurn));
+        tasks.add(() -> evaluateVertical(boardMatrix, forBlack, blacksTurn));
+        tasks.add(() -> evaluateDiagonal(boardMatrix, forBlack, blacksTurn));
+        List<Future<Integer>> results;
+        try {
+            results = exec.invokeAll(tasks);
+            for (Future<Integer> result : results){
+                scoreSum += result.get();
+            }
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } catch (ExecutionException e) {
+            throw new RuntimeException(e);
+        }
+        return scoreSum;
+         */
 
         // Calculate score for each of the 3 directions
+
         return evaluateHorizontal(boardMatrix, forBlack, blacksTurn) +
                 evaluateVertical(boardMatrix, forBlack, blacksTurn) +
                 evaluateDiagonal(boardMatrix, forBlack, blacksTurn);
+
+
     }
+
     // This function calculates the score by evaluating the stone positions in horizontal direction
-    public int evaluateHorizontal(char[][] boardMatrix, boolean forBlack, boolean playersTurn ) {
+    public int evaluateHorizontal(char[][] boardMatrix, boolean forBlack, boolean playersTurn) {
 
         int[] evaluations = {0, 2, 0}; // [0] -> consecutive count, [1] -> block count, [2] -> score
         // blocks variable is used to check if a consecutive stone set is blocked by the opponent or
@@ -215,11 +305,11 @@ public class BotBrain {
         // If there is another empty cell after a consecutive stones set, block count will again be
         // decremented by 1.
         // Iterate over all rows
-        for(int i=0; i<boardMatrix.length; i++) {
+        for (int i = 0; i < boardMatrix.length; i++) {
             // Iterate over all cells in a row
-            for(int j=0; j<boardMatrix[0].length; j++) {
+            for (int j = 0; j < boardMatrix[0].length; j++) {
                 // Check if the selected player has a stone in the current cell
-                evaluateDirections(boardMatrix,i,j,forBlack,playersTurn,evaluations);
+                evaluateDirections(boardMatrix, i, j, forBlack, playersTurn, evaluations);
             }
             evaluateDirectionsAfterOnePass(evaluations, forBlack, playersTurn);
         }
@@ -229,15 +319,15 @@ public class BotBrain {
 
     // This function calculates the score by evaluating the stone positions in vertical direction
     // The procedure is the exact same of the horizontal one.
-    public int evaluateVertical(char[][] boardMatrix, boolean forBlack, boolean playersTurn ) {
+    public int evaluateVertical(char[][] boardMatrix, boolean forBlack, boolean playersTurn) {
 
         int[] evaluations = {0, 2, 0}; // [0] -> consecutive count, [1] -> block count, [2] -> score
 
-        for(int j=0; j<boardMatrix[0].length; j++) {
-            for(int i=0; i<boardMatrix.length; i++) {
-                evaluateDirections(boardMatrix,i,j,forBlack,playersTurn,evaluations);
+        for (int j = 0; j < boardMatrix[0].length; j++) {
+            for (int i = 0; i < boardMatrix.length; i++) {
+                evaluateDirections(boardMatrix, i, j, forBlack, playersTurn, evaluations);
             }
-            evaluateDirectionsAfterOnePass(evaluations,forBlack,playersTurn);
+            evaluateDirectionsAfterOnePass(evaluations, forBlack, playersTurn);
 
         }
         return evaluations[2];
@@ -245,7 +335,7 @@ public class BotBrain {
 
     // This function calculates the score by evaluating the stone positions in diagonal directions
     // The procedure is the exact same of the horizontal calculation.
-    public int evaluateDiagonal(char[][] boardMatrix, boolean forBlack, boolean playersTurn ) {
+    public int evaluateDiagonal(char[][] boardMatrix, boolean forBlack, boolean playersTurn) {
 
         int[] evaluations = {0, 2, 0}; // [0] -> consecutive count, [1] -> block count, [2] -> score
         // From bottom-left to top-right diagonally
@@ -253,21 +343,24 @@ public class BotBrain {
             int iStart = Math.max(0, k - boardMatrix.length + 1);
             int iEnd = Math.min(boardMatrix.length - 1, k);
             for (int i = iStart; i <= iEnd; ++i) {
-                evaluateDirections(boardMatrix,i,k-i,forBlack,playersTurn,evaluations);
+                int j = k - i;
+                evaluateDirections(boardMatrix, i, j, forBlack, playersTurn, evaluations);
             }
-            evaluateDirectionsAfterOnePass(evaluations,forBlack,playersTurn);
+            evaluateDirectionsAfterOnePass(evaluations, forBlack, playersTurn);
         }
         // From top-left to bottom-right diagonally
-        for (int k = 1-boardMatrix.length; k < boardMatrix.length; k++) {
+        for (int k = 1 - boardMatrix.length; k < boardMatrix.length; k++) {
             int iStart = Math.max(0, k);
-            int iEnd = Math.min(boardMatrix.length + k - 1, boardMatrix.length-1);
+            int iEnd = Math.min(boardMatrix.length + k - 1, boardMatrix.length - 1);
             for (int i = iStart; i <= iEnd; ++i) {
-                evaluateDirections(boardMatrix,i,i-k,forBlack,playersTurn,evaluations);
+                int j = i - k;
+                evaluateDirections(boardMatrix, i, j, forBlack, playersTurn, evaluations);
             }
-            evaluateDirectionsAfterOnePass(evaluations,forBlack,playersTurn);
+            evaluateDirectionsAfterOnePass(evaluations, forBlack, playersTurn);
         }
         return evaluations[2];
     }
+
     public void evaluateDirections(char[][] boardMatrix, int i, int j, boolean isBot, boolean botsTurn, int[] eval) {
         // Check if the selected player has a stone in the current cell
         if (boardMatrix[i][j] == (isBot ? enemySymbol : mySymbol)) { //Just had to switch these two?
@@ -304,6 +397,7 @@ public class BotBrain {
             eval[1] = 2;
         }
     }
+
     private static void evaluateDirectionsAfterOnePass(int[] eval, boolean isBot, boolean playersTurn) {
         // End of row, check if there were any consecutive stones before we reached right border
         if (eval[0] > 0) {
@@ -317,12 +411,12 @@ public class BotBrain {
     // This function returns the score of a given consecutive stone set.
     // count: Number of consecutive stones in the set
     // blocks: Number of blocked sides of the set (2: both sides blocked, 1: single side blocked, 0: both sides free)
-    public static  int getConsecutiveSetScore(int count, int blocks, boolean currentTurn) {
-        final int winGuarantee = 1000000;
+    public static int getConsecutiveSetScore(int count, int blocks, boolean currentTurn) {
+        final int winGuarantee = 100_000;
         // If both sides of a set is blocked, this set is worthless return 0 points.
-        if(blocks == 2 && count < 5) return 0;
+        if (blocks == 2 && count < 5) return 0;
 
-        switch(count) {
+        switch (count) {
             case 5: {
                 // 5 consecutive wins the game
                 return WIN_SCORE;
@@ -330,11 +424,11 @@ public class BotBrain {
             case 4: {
                 // 4 consecutive stones in the user's turn guarantees a win.
                 // (User can win the game by placing the 5th stone after the set)
-                if(currentTurn) return winGuarantee;
+                if (currentTurn) return winGuarantee;
                 else {
                     // Opponent's turn
                     // If neither side is blocked, 4 consecutive stones guarantees a win in the next turn.
-                    if(blocks == 0) return winGuarantee/4;
+                    if (blocks == 0) return winGuarantee / 4;
                         // If only a single side is blocked, 4 consecutive stones limits the opponents move
                         // (Opponent can only place a stone that will block the remaining side, otherwise the game is lost
                         // in the next turn). So a relatively high score is given for this set.
@@ -343,32 +437,30 @@ public class BotBrain {
             }
             case 3: {
                 // 3 consecutive stones
-                if(blocks == 0) {
+                if (blocks == 0) {
                     // Neither side is blocked.
                     // If it's the current player's turn, a win is guaranteed in the next 2 turns.
                     // (User places another stone to make the set 4 consecutive, opponent can only block one side)
                     // However the opponent may win the game in the next turn therefore this score is lower than win
                     // guaranteed scores but still a very high score.
-                    if(currentTurn) return 50_000;
+                    if (currentTurn) return 50_000;
                         // If it's the opponent's turn, this set forces opponent to block one of the sides of the set.
                         // So a relatively high score is given for this set.
                     else return 200;
-                }
-                else {
+                } else {
                     // One of the sides is blocked.
                     // Playmaker scores
-                    if(currentTurn) return 10;
+                    if (currentTurn) return 10;
                     else return 5;
                 }
             }
             case 2: {
                 // 2 consecutive stones
                 // Playmaker scores
-                if(blocks == 0) {
-                    if(currentTurn) return 7;
+                if (blocks == 0) {
+                    if (currentTurn) return 7;
                     else return 5;
-                }
-                else {
+                } else {
                     return 3;
                 }
             }
@@ -378,6 +470,6 @@ public class BotBrain {
         }
 
         // More than 5 consecutive stones?
-        return WIN_SCORE*2;
+        return WIN_SCORE * 2;
     }
 }
