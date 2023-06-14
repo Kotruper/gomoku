@@ -161,9 +161,56 @@ const swapTurns = (symbol) => {
     
 }
 
+const markWin = (message) => {
+    if(message.x1 == message.x2){ //horizontal line
+        const firstY = message.y1 < message.y2 ? message.y1 : message.y2;
+        const lastY = message.y1 > message.y2 ? message.y1 : message.y2;
+        for(let y = firstY; y <= lastY; y++){
+            const id = (message.x1 * boardSize) + (y + 1);
+            const cell = document.getElementById(new String(id));
+            cell.classList.add("won");
+        }
+    }else if (message.y1 == message.y2){ //vertical line
+        const firstX = message.x1 < message.x2 ? message.x1 : message.x2;
+        const lastX = message.x1 > message.x2 ? message.x1 : message.x2;
+        for(let x = firstX; x <= lastX; x++){
+            const id = (x * boardSize) + (message.y1 + 1);
+            const cell = document.getElementById(new String(id));
+            cell.classList.add("won");
+        }
+    }else{ //diagonal line
+        let firstX = message.x1 < message.x2 ? {cord: message.x1, w: '1'} : {cord: message.x2, w: '2'};
+        let lastX = message.x1 > message.x2 ? {cord: message.x1, w: '1'} : {cord: message.x2, w: '2'};
+        let firstY = message.y1 < message.y2 ? {cord: message.y1, w: '1'} : {cord: message.y2, w: '2'};
+        let lastY = message.y1 > message.y2 ? {cord: message.y1, w: '1'} : {cord: message.y2, w: '2'};
+        
+        
+        if(parseInt(message[`y${firstX.w}`]) > parseInt(message[`y${lastX.w}`])){//left to right
+            console.log("right to left", firstX, firstY, lastX, lastY);
+            for(let x = firstX.cord, y = lastY.cord ; x <= lastX.cord; x++, y--){
+                const id = (x * boardSize) + (y + 1);
+                const cell = document.getElementById(new String(id));
+                console.log(id, cell);
+                cell.classList.add("won");
+            }
+        }else{ //right to left
+            console.log("left to right", firstX, firstY, lastX, lastY);
+            for(let x = firstX.cord, y = firstY.cord ; x <= lastX.cord; x++, y++){
+                const id = (x * boardSize) + (y + 1);
+                const cell = document.getElementById(new String(id));
+                console.log(id, cell);
+                cell.classList.add("won");
+            }
+        }
+        
+    
+    }
+}
+
 const gameEnd = (message) => {
     if(!message.isDraw){
         winningMessageTextElement.innerText = `${message.winner} wygrywa!`;
+        markWin(message);
     }else{
         winningMessageTextElement.innerText = `REMIS!`;
     }   

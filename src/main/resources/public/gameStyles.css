@@ -57,10 +57,19 @@ body {
   cursor: not-allowed;
 }
 
-.cell.x::before,
-.cell.x::after,
 .cell.circle::before {
-  background-color: black;
+  background-color: #5bc0de;
+  border: 1px solid black
+}
+
+.cell.x::before,
+.cell.x::after {
+  background-color: #39d17d;
+  border: 1px solid black
+}
+
+.cell.won{
+  background-color: #737373;
 }
 
 .board.x .cell:not(.x):not(.circle):hover::before,
@@ -112,7 +121,16 @@ body {
 .board.circle .cell:not(.x):not(.circle):hover::after {
   width: calc(var(--mark-size) * 0.7);
   height: calc(var(--mark-size) * 0.7);
-  background-color: var(--bs-body-bg);
+  background-color: #32383e;;
+  border: 1px solid black
+}
+
+.cell.won.circle::after,
+.board.circle .cell:not(.x):not(.circle):hover::after {
+  width: calc(var(--mark-size) * 0.7);
+  height: calc(var(--mark-size) * 0.7);
+  background-color:  #737373;
+  border: 1px solid black
 }
 
 .winning-message {
@@ -123,7 +141,7 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.9);
+  background-color: rgba(0, 0, 0, 0.5);
   justify-content: center;
   align-items: center;
   color: white;
