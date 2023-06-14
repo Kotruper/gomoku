@@ -70,11 +70,15 @@ public class Player {
                 .put("roomSize", boardsize);
         Server.sendMessage(this, message);
     }
-    public void sendMatchResult(Player winner, Boolean draw) {
+    public void sendMatchResult(Player winner, Boolean draw, Match.Line line) {
         JSONObject message = new JSONObject()
                 .put("type","game_end")
                 .put("isDraw",draw)
-                .put("winner", winner.name);
+                .put("winner", winner.name)
+                .put("x1",line.X1)
+                .put("y1",line.Y1)
+                .put("x2",line.X2)
+                .put("y2",line.Y2);
         Server.sendMessage(this, message);
     }
     public void sendMessage(Player receiver, String message) {

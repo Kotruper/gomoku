@@ -70,6 +70,7 @@ public class Match extends Thread {
         p2.sendMatchInfo(p1, boardSize);
         Player currentPlayer;
         Player.Move lastMove = null;
+        Line winningLine = null;
         do{
             currentPlayer = getCurrentPlayer();
             try {
@@ -86,8 +87,8 @@ public class Match extends Thread {
                 return;
                 //getOtherPlayer(currentPlayer).sendErr("The other player has left!"); //Do nothing? maybe some database stuff, I dunno
             }
-
-        }while(!hasGameEnded(lastMove));
+            winningLine = hasGameEnded(lastMove);
+        }while(winningLine == null);
         Boolean isDraw = (turn == maxMoves);
         if(isDraw == false) {
             if (currentPlayer.ses != null){
@@ -95,8 +96,8 @@ public class Match extends Thread {
             }
             ScoreTable.broadcastUpdatedScores();
         }
-        p1.sendMatchResult(currentPlayer, isDraw);
-        p2.sendMatchResult(currentPlayer, isDraw);  //TODO: send results to a database
+        p1.sendMatchResult(currentPlayer, isDraw, winningLine);
+        p2.sendMatchResult(currentPlayer, isDraw, winningLine);  //TODO: send results to a database
     }
 
     public void playerJoin(Player p){
@@ -147,40 +148,54 @@ public class Match extends Thread {
             board[pos.X][pos.Y] = symbol;
         }
     }
-    private boolean hasGameEnded(Player.Move pos){
+    private Line hasGameEnded(Player.Move pos){
         if(pos == null){
-            return false;
+            return null;
         }
         if (outOfBounds(pos.X, pos.Y))
-            return false;
+            return null;
         char symbol = board[pos.X][pos.Y];
         if (symbol == ' ')
-            return false;
+            return null;
         if (turn == maxMoves) {
-            return true;
+            return new Line();
         }
-        return checkLine(1, 0, symbol, pos) || checkLine(0, 1, symbol, pos) || checkLine(1, 1, symbol, pos) || checkLine(1, -1, symbol, pos);
+        Line winningLine = checkLine(1, 0, symbol, pos);
+        if(winningLine == null) winningLine = checkLine(0, 1, symbol, pos);
+        if(winningLine == null) winningLine = checkLine(1, 1, symbol, pos);
+        if(winningLine == null) winningLine = checkLine(1, -1, symbol, pos);
+        return winningLine;
     }
 
-    private boolean checkLine(int xShift, int yShift, char symbol, Player.Move pos){
+    private Line checkLine(int xShift, int yShift, char symbol, Player.Move pos){
         int countNInARow = 0;
         int startX = pos.X - (inARow-1) * xShift;
         int startY = pos.Y - (inARow-1) * yShift;
+
+        Line winningLine = new Line();
 
         for (int i = 0; i < (inARow * 2) - 1; i++) {
             int checkX = startX + xShift * i, checkY = startY + yShift * i;
             if (outOfBounds(checkX,checkY)){
                 countNInARow = 0;
             }else {
-                if (board[checkX][checkY] == symbol)
-                    countNInARow ++;
-                else
+                if (board[checkX][checkY] == symbol) {
+                    countNInARow++;
+                    if (!winningLine.hasStart) {
+                        winningLine.setXY1(checkX, checkY);
+                    }
+                    winningLine.setXY2(checkX, checkY);
+                }
+                else{
                     countNInARow = 0;
+                    winningLine.setXY1(-1,-1);
+                }
+
             }
             if(countNInARow == inARow)
-                return true;
+                return winningLine;
         }
-        return false;
+        return null;
     }
     private boolean outOfBounds(int x, int y){
         return x < 0 || x >= boardSize || y < 0 || y >= boardSize;
@@ -192,5 +207,34 @@ public class Match extends Thread {
             return 4;
         }else
             return 5;
+    }
+
+    public class Line{
+        public int X1, Y1, X2, Y2;
+        public Boolean hasStart = false;
+        Line(int x1, int y1, int x2, int y2){
+            X1 = x1; Y1 = y1; X2 = x2; Y2 = y2;
+        }
+        Line(){
+            X1 = -1; Y1 = -1; X2 = -1; Y2 = -1;
+        }
+        public void setXY1(int x, int y){
+            X1 = x;
+            Y1 = y;
+            if(x<0 || y<0){
+                hasStart = false;
+            }
+            else
+                hasStart = true;
+        }
+        public void setXY2(int x, int y){
+            X2 = x;
+            Y2 = y;
+        }
+
+        @Override
+        public String toString() {
+            return "(["+X1+","+Y1+"],["+X2+","+Y2+"])";
+        }
     }
 }

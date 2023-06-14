@@ -30,7 +30,7 @@ public class Bot extends Player{
     }
 
     @Override
-    public void sendMatchResult(Player winner, Boolean draw) {
+    public void sendMatchResult(Player winner, Boolean draw, Match.Line line) {
     }
 
 }
