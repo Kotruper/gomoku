@@ -12,13 +12,14 @@ webSocket.onmessage = (message) => {
             if(message.symbol == 88){
                 gameStartX(message);
                 player = 'x';
-                $('#figure').html('<i class="fa-solid fa-xmark"></i>');
+                $('#figure').html('<i class="fa-solid fa-xmark" style="color:#39d17d"></i>');
+                if(message.othername.startsWith('[SI]'))
+                    $('#info').html(' przeciwko <span style="color:#5bc0de">SI</span>')
                 winningMessageElement.classList.remove('show');
-            }   
-            else{
+            }else{
                 gameStartO(message);
                 player = 'o';
-                $('#figure').html('<i class="fa-regular fa-circle"></i>');
+                $('#figure').html('<i class="fa-regular fa-circle" style="color:#5bc0de"></i>');
                 winningMessageTextElement.innerText = 'Oczekiwanie na pierwszy ruch przeciwnika...';
             }
             
@@ -31,6 +32,7 @@ webSocket.onmessage = (message) => {
             break;
         case 'game_end':
             gameStatus = false;
+            console.log("End:", message);
             gameEnd(message);
             break;
         case 'game_error':
@@ -52,6 +54,7 @@ webSocket.onclose = (event) => {
     console.log(`[WEBSOCKET - CLOSE]`, event);
 };
 
+let moves = 1;
 let circleTurn;
 let player;
 let boardSize;
@@ -75,6 +78,7 @@ const createBoard = (size) => {
             $(newDiv).attr('y', y);
             $(newDiv).attr('id', (x * size) + (y + 1));
             $(newDiv).addClass('cell');
+            $(newDiv).html('<span class="moveNumber"></span>');
             board.appendChild(newDiv);
             board.style = `grid-template-columns: repeat(${size}, auto);`
         }
@@ -142,6 +146,7 @@ const gameMove = (message) => {
 
 const placeMark = (cellId, currentClass) => {
     const cell = document.getElementById(new String(cellId));
+    $(cell).find('.moveNumber').html("" + moves++);
     cell.classList.add(currentClass)
 }
 
@@ -209,7 +214,10 @@ const markWin = (message) => {
 
 const gameEnd = (message) => {
     if(!message.isDraw){
-        winningMessageTextElement.innerText = `${message.winner} wygrywa!`;
+        if(message.winner.startsWith('[SI]'))
+            winningMessageTextElement.innerHTML = `<span style="color:#5bc0de">${message.winner}</span> wygrywa!`;
+        else
+            winningMessageTextElement.innerText = `${message.winner} wygrywa!`;
         markWin(message);
     }else{
         winningMessageTextElement.innerText = `REMIS!`;

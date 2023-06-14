@@ -55,7 +55,7 @@ public class GameController {   //TODO: join from game list, join game by ID
         playerMatchMap.put(p, game);
         //Bot Stuff
         if (withBot){
-            Bot bocik = new Bot("Mirosław Gomoku");
+            Bot bocik = new Bot("[SI]Mirosław Gomoku");
             joinGame(bocik,game);
         }
         return game;

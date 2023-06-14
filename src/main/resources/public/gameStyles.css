@@ -57,6 +57,17 @@ body {
   cursor: not-allowed;
 }
 
+.moveNumber {
+  position: absolute;
+  z-index: 100;
+  right: 0;
+  bottom: 0;
+  color: #000000;
+  font-weight: bold;
+  -webkit-text-fill-color: #ffc800;
+  -webkit-text-stroke: 1px;
+}
+
 .cell.circle::before {
   background-color: #5bc0de;
   border: 1px solid black

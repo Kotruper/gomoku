@@ -17,7 +17,7 @@
         <div class="col-md-12">
             <div class="card">
               <div class="card-header row">
-                <h5 class="col-3 mt-2">Grasz jako <span id="figure">___</span></h5>
+                <h5 class="col-3 mt-2">Grasz jako <span id="figure">___</span><span id="info"></span></h5>
                 <div class="col-9">
                   <button class="btn btn-dark btn-sm new p-2 px-4 mr-3 float-end" id="refreshList" style="border-radius: 25px; color: white;" data-bs-toggle="offcanvas" data-bs-target="#offcanvasExample" aria-controls="offcanvasExample"><i class="fa-solid fa-ranking-star"></i> Tabela</button>
                 </div>
@@ -51,7 +51,7 @@
 
     <!-- Modal Window -->
     <div class="winning-message show" id="winningMessage">
-      <div data-winning-message-text>Oczekiwanie na drugiego gracza</div>
+      <div data-winning-message-text style="background-color: rgba(0,0,0,0.2);">Oczekiwanie na drugiego gracza</div>
       <button id="restartButton" class="btn btn-warning" onclick="window.location = '/'">Powrót do lobby</button>
     </div>
     <a href="/login.html" class="float2">
