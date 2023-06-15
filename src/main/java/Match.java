@@ -25,7 +25,7 @@ public class Match extends Thread {
         this.gameName = gameName;
         this.board = new char[boardSize][boardSize];
         inARow = boardToRowAmount(boardSize);
-        maxMoves = boardSize * boardSize;
+        maxMoves = boardSize * boardSize + 1;
         initializeBoard(board);
     }
 
@@ -66,8 +66,8 @@ public class Match extends Thread {
                 return;
             }
         }
-        p1.sendMatchInfo(p2, boardSize);
-        p2.sendMatchInfo(p1, boardSize);
+        p1.sendMatchInfo(p2, boardSize, inARow);
+        p2.sendMatchInfo(p1, boardSize, inARow);
         Player currentPlayer;
         Player.Move lastMove = null;
         Line winningLine = null;

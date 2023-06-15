@@ -21,13 +21,15 @@ public class BotBrain {
     private static HashMap<String,Double> cache = new HashMap<>();
 
     private Board board;
+    static private int inARowNeeded = 5;
 
     private char mySymbol = 'X';
 
     private char enemySymbol = 'O';
 
-    public BotBrain(int boardsize) {
+    public BotBrain(int boardsize, int inARow) {
         board = new Board(boardsize);
+        inARowNeeded = inARow;
     }
 
     public void receiveEnemyMove(int x, int y) {
@@ -54,7 +56,6 @@ public class BotBrain {
         Arrays.fill(nodeDepthEntered, 0);
 
         // Used for benchmarking purposes only.
-        //thinkingStarted();
         long startTime = System.currentTimeMillis();
 
         // Check if any available move can finish the game to make sure the AI always
@@ -73,7 +74,6 @@ public class BotBrain {
             System.out.println("Calc: " + calculatedMove[0] + " Move: " + calculatedMove[1]);
         }
         System.out.println("Cases calculated: " + evaluationCount + " Cases retrieved from cache: " + cacheRetrievalCount +" Calculation time: " + (System.currentTimeMillis() - startTime) + " ms");
-        //thinkingFinished();
         /*
         for (int i = 0; i < moveHistory.size(); i++){
             System.out.println(" ".repeat((int)moveHistory.get(i)[2])+i+": S="+ String.format("%,.2f",moveHistory.get(i)[0])+" YX="+moveHistory.get(i)[1]+" D="+moveHistory.get(i)[2]);
@@ -142,29 +142,16 @@ public class BotBrain {
                 dummyBoard.addStoneNoGUI(move, mySymbol);
 
                 // Call the minimax function for the next depth, to look for a minimum score.
-                // This function recursively generates new Minimax trees branching from this node
-                // (if the depth > 0) and searches for the minimum white score in each of the sub trees.
-                // We will find the maximum score of this depth, among the minimum scores found in the
-                // lower depth.
                 Object[] tempMove = minimaxSearchAB(depth - 1, dummyBoard, false, alpha, beta);
 
                 // backtrack and remove
                 dummyBoard.removeStoneNoGUI(move);
 
                 // Updating alpha (alpha value holds the maximum score)
-                // When searching for the minimum, if the score of a node is lower than the alpha
-                // (max score of uncle nodes from one upper level) the whole subtree originating
-                // from that node will be discarded, since the maximizing player will choose the
-                // alpha node over any node with a score lower than the alpha.
                 if ((Double) (tempMove[0]) > alpha) {
                     alpha = (Double) (tempMove[0]);
                 }
                 // Pruning with beta
-                // Beta value holds the minimum score among the uncle nodes from one upper level.
-                // We need to find a score lower than this beta score, because any score higher than
-                // beta will be eliminated by the minimizing player (upper level). If the score is
-                // higher than (or equal to) beta, break out of loop discarding any remaining nodes
-                // and/or subtrees and return the last move.
                 if ((Double) (tempMove[0]) >= beta) {
                     return tempMove;
                 }
@@ -188,28 +175,15 @@ public class BotBrain {
                 dummyBoard.addStoneNoGUI(move, enemySymbol);
 
                 // Call the minimax function for the next depth, to look for a maximum score.
-                // This function recursively generates new Minimax trees branching from this node
-                // (if the depth > 0) and searches for the maximum white score in each of the sub trees.
-                // We will find the minimum score of this depth, among the maximum scores found in the
-                // lower depth.
                 Object[] tempMove = minimaxSearchAB(depth - 1, dummyBoard, true, alpha, beta);
 
                 dummyBoard.removeStoneNoGUI(move);
 
                 // Updating beta (beta value holds the minimum score)
-                // When searching for the maximum, if the score of a node is higher than the beta
-                // (min score of uncle nodes from one upper level) the whole subtree originating
-                // from that node will be discarded, since the minimizing player will choose the
-                // beta node over any node with a score higher than the beta.
                 if (((Double) tempMove[0]) < beta) {
                     beta = (Double) (tempMove[0]);
                 }
                 // Pruning with alpha
-                // Alpha value holds the maximum score among the uncle nodes from one upper level.
-                // We need to find a score higher than this alpha score, because any score lower than
-                // alpha will be eliminated by the maximizing player (upper level). If the score is
-                // lower than (or equal to) alpha, break out of loop discarding any remaining nodes
-                // and/or subtrees and return the last move.
                 if ((Double) (tempMove[0]) <= alpha) {
                     return tempMove;
                 }
@@ -225,15 +199,14 @@ public class BotBrain {
             System.out.println("Best Move for: depth: " + depth + " alpha: " + alpha + " beta: " + beta + " score: " + bestMove[0] + " move: " + bestMove[1] + "\n");
         }
 
-        // Return the best move found in this depth
+
         //updateHistory(bestMove, depth);
         //cache.put(board.key(), (Double) bestMove[0]); caching is hard, apparently
+        // Return the best move found in this depth
         return bestMove;
     }
 
     // This function calculates the relative score of the white player against the black.
-    // (i.e. how likely is white player (ai) to win the game before the black player (user))
-    // This value will be used as the score in the Minimax algorithm.
     public double evaluateBoardForWhite(Board board, boolean blacksTurn) {
         /*
         String key = board.key();
@@ -256,8 +229,6 @@ public class BotBrain {
     }
 
     // This function calculates the board score of the specified player.
-    // (i.e. How good a player's general standing on the board by considering how many
-    //  consecutive 2's, 3's, 4's it has, how many of them are blocked etc...)
     public int getScore(Board board, boolean forBlack, boolean blacksTurn) {
 
         // Read the board
@@ -296,15 +267,7 @@ public class BotBrain {
     public int evaluateHorizontal(char[][] boardMatrix, boolean forBlack, boolean playersTurn) {
 
         int[] evaluations = {0, 2, 0}; // [0] -> consecutive count, [1] -> block count, [2] -> score
-        // blocks variable is used to check if a consecutive stone set is blocked by the opponent or
-        // the board border. If the both sides of a consecutive set is blocked, blocks variable will be 2
-        // If only a single side is blocked, blocks variable will be 1, and if both sides of the consecutive
-        // set is free, blocks count will be 0.
-        // By default, first cell in a row is blocked by the left border of the board.
-        // If the first cell is empty, block count will be decremented by 1.
-        // If there is another empty cell after a consecutive stones set, block count will again be
-        // decremented by 1.
-        // Iterate over all rows
+
         for (int i = 0; i < boardMatrix.length; i++) {
             // Iterate over all cells in a row
             for (int j = 0; j < boardMatrix[0].length; j++) {
@@ -317,8 +280,6 @@ public class BotBrain {
         return evaluations[2];
     }
 
-    // This function calculates the score by evaluating the stone positions in vertical direction
-    // The procedure is the exact same of the horizontal one.
     public int evaluateVertical(char[][] boardMatrix, boolean forBlack, boolean playersTurn) {
 
         int[] evaluations = {0, 2, 0}; // [0] -> consecutive count, [1] -> block count, [2] -> score
@@ -333,8 +294,6 @@ public class BotBrain {
         return evaluations[2];
     }
 
-    // This function calculates the score by evaluating the stone positions in diagonal directions
-    // The procedure is the exact same of the horizontal calculation.
     public int evaluateDiagonal(char[][] boardMatrix, boolean forBlack, boolean playersTurn) {
 
         int[] evaluations = {0, 2, 0}; // [0] -> consecutive count, [1] -> block count, [2] -> score
@@ -409,64 +368,62 @@ public class BotBrain {
     }
 
     // This function returns the score of a given consecutive stone set.
-    // count: Number of consecutive stones in the set
-    // blocks: Number of blocked sides of the set (2: both sides blocked, 1: single side blocked, 0: both sides free)
     public static int getConsecutiveSetScore(int count, int blocks, boolean currentTurn) {
         final int winGuarantee = 100_000;
         // If both sides of a set is blocked, this set is worthless return 0 points.
-        if (blocks == 2 && count < 5) return 0;
+        if (blocks == 2 && count < inARowNeeded) return 0;
 
-        switch (count) {
-            case 5: {
-                // 5 consecutive wins the game
-                return WIN_SCORE;
+        currentTurn = !currentTurn; //TEST
+
+        if (count == inARowNeeded){
+            // 5 consecutive wins the game
+            return WIN_SCORE;
+        }
+        else if (count == inARowNeeded-1){
+            // 4 consecutive stones in the user's turn guarantees a win.
+            // (User can win the game by placing the 5th stone after the set)
+            if (currentTurn) return winGuarantee;
+            else {
+                // Opponent's turn
+                // If neither side is blocked, 4 consecutive stones guarantees a win in the next turn.
+                if (blocks == 0) return winGuarantee / 4;
+                    // If only a single side is blocked, 4 consecutive stones limits the opponents move
+                    // (Opponent can only place a stone that will block the remaining side, otherwise the game is lost
+                    // in the next turn). So a relatively high score is given for this set.
+                else return 200;
             }
-            case 4: {
-                // 4 consecutive stones in the user's turn guarantees a win.
-                // (User can win the game by placing the 5th stone after the set)
-                if (currentTurn) return winGuarantee;
-                else {
-                    // Opponent's turn
-                    // If neither side is blocked, 4 consecutive stones guarantees a win in the next turn.
-                    if (blocks == 0) return winGuarantee / 4;
-                        // If only a single side is blocked, 4 consecutive stones limits the opponents move
-                        // (Opponent can only place a stone that will block the remaining side, otherwise the game is lost
-                        // in the next turn). So a relatively high score is given for this set.
-                    else return 200;
-                }
-            }
-            case 3: {
-                // 3 consecutive stones
-                if (blocks == 0) {
-                    // Neither side is blocked.
-                    // If it's the current player's turn, a win is guaranteed in the next 2 turns.
-                    // (User places another stone to make the set 4 consecutive, opponent can only block one side)
-                    // However the opponent may win the game in the next turn therefore this score is lower than win
-                    // guaranteed scores but still a very high score.
-                    if (currentTurn) return 50_000;
-                        // If it's the opponent's turn, this set forces opponent to block one of the sides of the set.
-                        // So a relatively high score is given for this set.
-                    else return 200;
-                } else {
-                    // One of the sides is blocked.
-                    // Playmaker scores
-                    if (currentTurn) return 10;
-                    else return 5;
-                }
-            }
-            case 2: {
-                // 2 consecutive stones
+        }
+        else if (count == inARowNeeded-2){
+            // 3 consecutive stones
+            if (blocks == 0) {
+                // Neither side is blocked.
+                // If it's the current player's turn, a win is guaranteed in the next 2 turns.
+                // (User places another stone to make the set 4 consecutive, opponent can only block one side)
+                // However the opponent may win the game in the next turn therefore this score is lower than win
+                // guaranteed scores but still a very high score.
+                if (currentTurn) return 50_000;
+                    // If it's the opponent's turn, this set forces opponent to block one of the sides of the set.
+                    // So a relatively high score is given for this set.
+                else return 200;
+            } else {
+                // One of the sides is blocked.
                 // Playmaker scores
-                if (blocks == 0) {
-                    if (currentTurn) return 7;
-                    else return 5;
-                } else {
-                    return 3;
-                }
+                if (currentTurn) return 10;
+                else return 5;
             }
-            case 1: {
-                return 1;
+        }
+        else if (count == inARowNeeded-3){
+            // 2 consecutive stones
+            // Playmaker scores
+            if (blocks == 0) {
+                if (currentTurn) return 7;
+                else return 5;
+            } else {
+                return 3;
             }
+        }
+        else if (count == inARowNeeded-4){
+            return 1;
         }
 
         // More than 5 consecutive stones?

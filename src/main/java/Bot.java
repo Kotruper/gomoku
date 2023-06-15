@@ -25,8 +25,8 @@ public class Bot extends Player{
     public void sendErr(String error) {
 
     }
-    public void sendMatchInfo(Player other, int boardsize) {
-        this.brain = new BotBrain(boardsize);
+    public void sendMatchInfo(Player other, int boardsize, int inARow) {
+        this.brain = new BotBrain(boardsize, inARow);
     }
 
     @Override

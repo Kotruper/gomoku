@@ -61,7 +61,7 @@ public class Player {
                 .put("value",error);
         Server.sendMessage(this, message);
     }
-    public void sendMatchInfo(Player other, int boardsize) {
+    public void sendMatchInfo(Player other, int boardsize, int inARow) {
         JSONObject message = new JSONObject()
                 .put("type","game_start")
                 .put("yourname",this.name)
